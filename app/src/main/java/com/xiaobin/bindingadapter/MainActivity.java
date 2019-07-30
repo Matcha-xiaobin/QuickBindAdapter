@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.xiaobin.bindingadapter.databinding.ActivityMainBinding;
 import com.xiaobin.quickbindadapter.ItemData;
-import com.xiaobin.quickbindadapter.QuickBindingAdapter;
+import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityMainBinding binding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.activity_main, null, false);
         setContentView(binding.getRoot());
 
-        QuickBindingAdapter adapter = new QuickBindingAdapter();
+        QuickBindAdapter adapter = new QuickBindAdapter();
         //绑定数据类型和布局
         adapter.bind(ChatListBean.class, R.layout.item_main, BR.data);
         adapter.bind(String.class, R.layout.item_head, BR.data);

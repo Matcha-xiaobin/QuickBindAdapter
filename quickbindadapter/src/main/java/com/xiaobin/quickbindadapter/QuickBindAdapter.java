@@ -19,82 +19,109 @@ import java.util.Map;
  * @author 小斌
  * @data 2019/7/10
  **/
-public class QuickBindingAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
+public class QuickBindAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
-    private final String TAG = "QuickBindingAdapter";
+    private final String TAG = "QuickBindAdapter";
 
-    private List<View> headViews = new ArrayList<>();
-    private List<View> footViews = new ArrayList<>();
-    //数据类型
+    //数据类型集合
     private List<Class<?>> clazzList = new ArrayList<>();
-    //databinding属性名
+    //databinding属性名集合
     private List<Integer> variableIds = new ArrayList<>();
-    //item布局
+    //item布局集合
     private List<Integer> layoutIds = new ArrayList<>();
-    //需要点击事件，长按事件监听的viewId
+    //需要点击事件，长按事件监听的viewId集合
     private Map<Class<?>, List<Integer>> clickListenerIds = new HashMap<>();
     private Map<Class<?>, List<Integer>> longClickListenerIds = new HashMap<>();
-
+    //数据集合
     private ItemData dataList = new ItemData();
-    private int realIndex;
 
     //*******************************用于外部调用的方法******************************
-    public void addHead(View view) {
-        headViews.add(view);
-        notifyDataSetChanged();
-    }
 
-    public void addFooter(View view) {
-        footViews.add(view);
-        notifyDataSetChanged();
-    }
-
+    /**
+     * 设置新的数据
+     *
+     * @param dataList
+     */
     public void setNewData(List<?> dataList) {
         this.dataList.clear();
         this.dataList.addAll(dataList);
         notifyDataSetChanged();
     }
 
+    /**
+     * 设置新的数据
+     *
+     * @param dataList
+     */
     public void setNewData(ItemData dataList) {
         this.dataList.clear();
         this.dataList.addAll(dataList);
         notifyDataSetChanged();
     }
 
+    /**
+     * 添加单个数据
+     *
+     * @param data
+     */
     public void addData(Object data) {
         this.dataList.add(data);
-        notifyItemInserted(getItemCount() - footViews.size());
-        if (footViews.size() > 0) {
-            notifyItemRangeChanged(getItemCount() - footViews.size(), footViews.size());
-        }
+        notifyItemInserted(getItemCount());
     }
 
+    /**
+     * 添加数据
+     *
+     * @param datas
+     */
     public void addDatas(List<?> datas) {
+        int lastIndex = getItemCount();
         this.dataList.addAll(datas);
-        int lastIndex = getItemCount() - footViews.size();
         notifyItemRangeInserted(lastIndex - datas.size(), datas.size());
     }
 
+    /**
+     * 添加数据
+     *
+     * @param datas
+     */
     public void addDatas(ItemData datas) {
+        int lastIndex = getItemCount();
         this.dataList.addAll(datas);
-        int lastIndex = getItemCount() - footViews.size();
         notifyItemRangeInserted(lastIndex - datas.size(), getItemCount());
     }
 
+    /**
+     * 移除某个item
+     *
+     * @param position
+     */
     public void remove(int position) {
-        realIndex = headViews.size() + position;
-        notifyItemRemoved(realIndex);
         dataList.remove(position);
-        notifyItemRangeChanged(realIndex, getItemCount() - realIndex);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, getItemCount() - position);
     }
 
+    /**
+     * 替换item内容
+     *
+     * @param position
+     * @param itemData
+     */
     public void replace(int position, Object itemData) {
-        realIndex = headViews.size() + position;
         dataList.set(position, itemData);
-        notifyItemChanged(realIndex);
+        notifyItemChanged(position);
     }
 
-    public QuickBindingAdapter bind(Class<?> clazz, @LayoutRes int layoutId, int bindVariableId) {
+    /**
+     * 绑定布局
+     *
+     * @param clazz          数据类型
+     * @param layoutId       布局ID
+     * @param bindVariableId DataBinding BR
+     * @return 这个对象
+     */
+    public QuickBindAdapter bind(Class<?> clazz, @LayoutRes int layoutId, int bindVariableId) {
         if (!clazzList.contains(clazz)) {
             clazzList.add(clazz);
             layoutIds.add(layoutId);
@@ -110,7 +137,7 @@ public class QuickBindingAdapter extends RecyclerView.Adapter<BaseBindingViewHol
      * @param viewId
      * @return
      */
-    public QuickBindingAdapter addClickListener(Class<?> clazz, @IdRes int... viewId) {
+    public QuickBindAdapter addClickListener(Class<?> clazz, @IdRes int... viewId) {
         List<Integer> ids = new ArrayList<>(viewId.length);
         for (Integer id : viewId) {
             ids.add(id);
@@ -126,7 +153,7 @@ public class QuickBindingAdapter extends RecyclerView.Adapter<BaseBindingViewHol
      * @param viewId
      * @return
      */
-    public QuickBindingAdapter addLongClickListener(Class<?> clazz, @IdRes int... viewId) {
+    public QuickBindAdapter addLongClickListener(Class<?> clazz, @IdRes int... viewId) {
         List<Integer> ids = new ArrayList<>(viewId.length);
         for (Integer id : viewId) {
             ids.add(id);
@@ -188,42 +215,25 @@ public class QuickBindingAdapter extends RecyclerView.Adapter<BaseBindingViewHol
 
     @Override
     public int getItemViewType(int position) {
-        if (headViews.size() > 0) {
-            if (position < headViews.size()) {
-                return position;
-            }
-        }
-        if (footViews.size() > 0) {
-            if (position >= headViews.size() + dataList.size()) {
-                return -(position - (headViews.size() + dataList.size() + 1));
-            }
-        }
-        position -= headViews.size();
+        //得到itemData的index，然后得到对应的数据
         Object itemData = dataList.get(position);
+        //判断数据类型集合中是否有这个数据的类型
         if (clazzList.contains(itemData.getClass())) {
-            if (headViews.size() > 0) {
-                return headViews.size() + clazzList.indexOf(itemData.getClass());
-            } else {
-                return clazzList.indexOf(itemData.getClass());
-            }
+            //如果有这个类型，则返回这个类型所在集合的index
+            return clazzList.indexOf(itemData.getClass());
         }
+        //如果没有这个类型，则返回-1
         return -1;
     }
 
     @NonNull
     @Override
     public BaseBindingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType < headViews.size() && viewType > -1) {
-            return new BaseBindingViewHolder(headViews.get(viewType));
-        }
-        if (footViews.size() > 0 && viewType < 0) {
-            return new BaseBindingViewHolder(footViews.get(-viewType - 1));
-        }
+        //根据getItemViewType方法返回的viewType，判断是否是头部
         if (viewType > -1) {
-            int vt = headViews.size() > 0 ? viewType - headViews.size() : viewType;
             return new BaseBindingViewHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
-                    layoutIds.get(vt), parent, false));
+                    layoutIds.get(viewType), parent, false));
         }
         return new BaseBindingViewHolder(new View(parent.getContext()));
     }
@@ -231,48 +241,56 @@ public class QuickBindingAdapter extends RecyclerView.Adapter<BaseBindingViewHol
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
         int itemType = holder.getItemViewType();
-        if (itemType < headViews.size()) {
+        if (itemType < 0) {
             return;
         }
-        int clzIndex = headViews.size() > 0 ?
-                itemType - headViews.size() : itemType;
-        int finalPosition = position - headViews.size();
-        if (onItemClickListener != null) {
-            holder.itemView.setOnClickListener(view ->
-                    onItemClickListener.onItemClick(this, view, finalPosition));
-        }
-        if (onItemLongClickListener != null) {
-            holder.itemView.setOnLongClickListener(view -> {
-                onItemLongClickListener.onItemLongClick(this, view, finalPosition);
+        Class clz = clazzList.get(itemType);
+        //item点击事件绑定
+        holder.itemView.setOnClickListener(view -> {
+            if (onItemClickListener != null) {
+                onItemClickListener.onItemClick(this, view, position);
+            }
+        });
+        //item长按事件绑定
+        holder.itemView.setOnLongClickListener(view -> {
+            if (onItemLongClickListener != null) {
+                onItemLongClickListener.onItemLongClick(this, view, position);
                 return true;
-            });
-        }
-        Class clz = clazzList.get(clzIndex);
+            }
+            return false;
+        });
         //子控件点击事件
-        if (onItemChildClickListener != null && clickListenerIds.containsKey(clz)) {
+        if (clickListenerIds.containsKey(clz)) {
             List<Integer> _ids = clickListenerIds.get(clz);
             for (Integer id : _ids) {
-                holder.itemView.findViewById(id).setOnClickListener(view ->
-                        onItemChildClickListener.onItemClick(this, view, finalPosition));
-            }
-        }
-        //子控件长按事件
-        if (onItemChildLongClickListener != null && longClickListenerIds.containsKey(clz)) {
-            List<Integer> _ids = longClickListenerIds.get(clz);
-            for (Integer id : _ids) {
-                holder.itemView.findViewById(id).setOnLongClickListener(view -> {
-                    onItemChildLongClickListener.onItemLongClick(this, view, finalPosition);
-                    return true;
+                holder.itemView.findViewById(id).setOnClickListener(view -> {
+                    if (onItemChildClickListener != null) {
+                        onItemChildClickListener.onItemClick(this, view, position);
+                    }
                 });
             }
         }
-        holder.getBinding().setVariable(variableIds.get(clzIndex), dataList.get(finalPosition));
+        //子控件长按事件
+        if (longClickListenerIds.containsKey(clz)) {
+            List<Integer> _ids = longClickListenerIds.get(clz);
+            for (Integer id : _ids) {
+                holder.itemView.findViewById(id).setOnLongClickListener(view -> {
+                    if (onItemChildLongClickListener != null) {
+                        onItemChildLongClickListener.onItemLongClick(this, view, position);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        }
+
+        holder.getBinding().setVariable(variableIds.get(itemType), dataList.get(position));
         holder.getBinding().executePendingBindings();
     }
 
     @Override
     public int getItemCount() {
-        return headViews.size() + dataList.size() + footViews.size();
+        return dataList.size();
     }
 
     /**
@@ -291,27 +309,27 @@ public class QuickBindingAdapter extends RecyclerView.Adapter<BaseBindingViewHol
      * 点击事件
      */
     public interface OnItemClickListener {
-        void onItemClick(QuickBindingAdapter adapter, View view, int position);
+        void onItemClick(QuickBindAdapter adapter, View view, int position);
     }
 
     /**
      * 长按事件
      */
     public interface OnItemLongClickListener {
-        void onItemLongClick(QuickBindingAdapter adapter, View view, int position);
+        void onItemLongClick(QuickBindAdapter adapter, View view, int position);
     }
 
     /**
      * 子控件点击事件
      */
     public interface OnItemChildClickListener {
-        void onItemClick(QuickBindingAdapter adapter, View view, int position);
+        void onItemClick(QuickBindAdapter adapter, View view, int position);
     }
 
     /**
      * 子控件长按事件
      */
     public interface OnItemChildLongClickListener {
-        void onItemLongClick(QuickBindingAdapter adapter, View view, int position);
+        void onItemLongClick(QuickBindAdapter adapter, View view, int position);
     }
 }
