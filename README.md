@@ -5,8 +5,7 @@
 
 在代码中使用：
 
-
-## QuickBindAdapter adapter = new QuickBindAdapter();
+    QuickBindAdapter adapter = new QuickBindAdapter();
 
 ## 绑定数据类型和布局  有几种布局，就bind几次，每一种布局要对应一种数据类型
 
