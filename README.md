@@ -6,9 +6,9 @@
 在代码中使用：
 
 
-QuickBindAdapter adapter = new QuickBindAdapter();
+## QuickBindAdapter adapter = new QuickBindAdapter();
 
-## 绑定数据类型和布局  有几种布局，就bind几次
+## 绑定数据类型和布局  有几种布局，就bind几次，每一种布局要对应一种数据类型
 
     adapter.bind(DataBean.class, R.layout.item_child, BR.data);
 
@@ -37,25 +37,38 @@ QuickBindAdapter adapter = new QuickBindAdapter();
 
 ## 设置新数据：
 
-   ### 使用ItemData.class
-
+    dataList 如果是需要多布局，建议使用ItemData 添加数据。
+    
+    例如：
+    
         ItemData dataList = new ItemData();
-    
-        dataList.add(object);
-    
-        adapter.setNewData(dataList);
-    
-   ### 使用List<?>
-
-        List<ChatListBean> dataList2 = new ArrayList<>();
-  
+        ChatListBean item;
         for (int i = 0; i < 15; i++) {
-                                                     
-            dataList2.add(new ChatListBean());                         
-                                                     
+            switch (i) {
+                case 0:
+                    dataList.add("分组一");
+                    break;
+                case 3:
+                    dataList.add("分组二");
+                    break;
+                case 5:
+                    dataList.add("分组三");
+                    break;
+                case 7:
+                    dataList.add("分组四");
+                    break;
+                default:
+                    break;
+            }
+            item = new ChatListBean();
+            item.setId(String.valueOf(i));
+            dataList.add(item);
         }
-                                                     
-    adapter.setNewData(dataList2);
+        adapter.setNewData(dataList);
+                      
+    如果仅一种类型，可以直接使用：
+                      
+    adapter.setNewData(dataList);
                                                      
 ## 添加单个item
                                                      
