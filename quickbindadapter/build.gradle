@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+group='com.github.Matchas-xiaobin'
 
 android {
     compileSdkVersion 29
