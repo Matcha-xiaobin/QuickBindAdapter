@@ -1,5 +1,6 @@
 package com.xiaobin.bindingadapter.ui.linear;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -9,11 +10,14 @@ import com.xiaobin.bindingadapter.BR;
 import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityBaseBinding;
+import com.xiaobin.bindingadapter.databinding.ItemLinearBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
 import com.xiaobin.quickbindadapter.ItemData;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 /**
+ * LinearLayoutManager 示例
+ *
  * @author xiaobin
  */
 public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
@@ -43,6 +47,12 @@ public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(adapter);
+        //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
+        adapter.setQuickCovert((binding, itemData, position) -> {
+            // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
+            ItemLinearBinding mBinding = (ItemLinearBinding) binding;
+            mBinding.tvName.setTextColor(Color.RED);
+        });
         //绑定item的点击事件
         adapter.setOnItemClickListener((adapter1, view, position) -> {
             //item点击事件

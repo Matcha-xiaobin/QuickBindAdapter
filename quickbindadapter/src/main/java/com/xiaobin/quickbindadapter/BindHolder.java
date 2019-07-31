@@ -9,16 +9,16 @@ import androidx.recyclerview.widget.RecyclerView;
  * @author 小斌
  * @data 2019/6/24
  **/
-public class BaseBindingViewHolder extends RecyclerView.ViewHolder {
+public class BindHolder extends RecyclerView.ViewHolder {
 
     private ViewDataBinding binding;
 
-    public BaseBindingViewHolder(ViewDataBinding binding) {
+    public BindHolder(ViewDataBinding binding) {
         super(binding.getRoot());
         this.binding = binding;
     }
 
-    public BaseBindingViewHolder(View view) {
+    public BindHolder(View view) {
         super(view);
     }
 

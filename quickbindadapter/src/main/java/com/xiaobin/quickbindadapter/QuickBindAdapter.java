@@ -19,7 +19,7 @@ import java.util.Map;
  * @author 小斌
  * @data 2019/7/10
  **/
-public class QuickBindAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
+public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     private final String TAG = "QuickBindAdapter";
 
@@ -34,8 +34,18 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BaseBindingViewHolder
     private Map<Class<?>, List<Integer>> longClickListenerIds = new HashMap<>();
     //数据集合
     private ItemData dataList = new ItemData();
+    //额外的item样式处理
+    private QuickCovert quickCovert;
 
     //*******************************用于外部调用的方法******************************
+
+    /**
+     * 如果你只想用databinding来拿控件，其他的逻辑依然写在adapter中，那就实现这个吧
+     * @param quickCovert
+     */
+    public void setQuickCovert(QuickCovert quickCovert) {
+        this.quickCovert = quickCovert;
+    }
 
     /**
      * 设置新的数据
@@ -228,18 +238,18 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BaseBindingViewHolder
 
     @NonNull
     @Override
-    public BaseBindingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public BindHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         //根据getItemViewType方法返回的viewType，判断是否是头部
         if (viewType > -1) {
-            return new BaseBindingViewHolder(DataBindingUtil.inflate(
+            return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
                     layoutIds.get(viewType), parent, false));
         }
-        return new BaseBindingViewHolder(new View(parent.getContext()));
+        return new BindHolder(new View(parent.getContext()));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull BindHolder holder, int position) {
         int itemType = holder.getItemViewType();
         if (itemType < 0) {
             return;
@@ -285,6 +295,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BaseBindingViewHolder
         }
 
         holder.getBinding().setVariable(variableIds.get(itemType), dataList.get(position));
+        if (quickCovert != null) {
+            quickCovert.onCovert(holder.getBinding(), dataList.get(position), position);
+        }
         holder.getBinding().executePendingBindings();
     }
 
