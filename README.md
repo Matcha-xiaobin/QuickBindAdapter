@@ -22,7 +22,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.0.0'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.0.1'
     }
 
 ### 在代码中使用：
