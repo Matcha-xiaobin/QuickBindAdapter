@@ -31,7 +31,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#B9B8B8"
+            android:background="#B8B8B8"
             app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
