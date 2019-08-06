@@ -6,6 +6,23 @@
 
 ![blockchain](https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screenshot.gif "截图")
 
+## 更新记录
+
+### v1.0.2 新增QuickCovert接口，用于只使用Databinding绑定控件，在adapter中写逻辑;
+      
+      adapter.setQuickCovert((binding, itemData, position) -> {
+          // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
+          //如果是多布局，则需要做下判断：
+          if (binding instanceof ItemStartBinding) {
+              // R.layout.item_start 类型 的item
+          }
+          //也可以这样：
+          if (itemData instanceof String) {
+              // String 类型 的item
+          }
+      });
+      
+
 ## 在项目中引用
 
 
@@ -22,7 +39,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.0.1'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.0.2'
     }
 
 ### 在代码中使用：
