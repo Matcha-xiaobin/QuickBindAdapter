@@ -8,6 +8,10 @@
 
 ## 更新记录
 
+### v1.0.3 补上获取所有item数据的api;
+      
+      ItemData dataList = adapter.getDatas();
+      
 ### v1.0.2 新增QuickCovert接口，用于只使用Databinding绑定控件，在adapter中写逻辑;
       
       adapter.setQuickCovert((binding, itemData, position) -> {
