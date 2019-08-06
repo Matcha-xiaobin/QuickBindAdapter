@@ -41,6 +41,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     /**
      * 如果你只想用databinding来拿控件，其他的逻辑依然写在adapter中，那就实现这个吧
+     *
      * @param quickCovert
      */
     public void setQuickCovert(QuickCovert quickCovert) {
@@ -183,6 +184,15 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             return dataList.get(position);
         }
         return null;
+    }
+
+    /**
+     * 获得全部item数据
+     *
+     * @return
+     */
+    public ItemData getDatas() {
+        return dataList;
     }
 
     /**
