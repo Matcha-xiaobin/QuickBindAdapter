@@ -8,7 +8,7 @@
 
 ## 更新记录
 
-### v1.0.4 bind()的时候，可以不传入BR.xxx，也就是不绑定数据，如果要填充数据，建议配合QuickCovert一起使用;
+### v1.0.4 绑定布局的时候，可以不填充数据，如果要填充数据，建议配合QuickCovert一起使用;
 
       //有几种布局就bind几次
       adapter.bind(String.class, R.layout.item_group);
@@ -48,7 +48,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.0.3'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.0.4'
     }
 
 ### 在代码中使用：
