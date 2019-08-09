@@ -8,6 +8,11 @@
 
 ## 更新记录
 
+### v1.0.4 bind()的时候，可以不传入BR.xxx，也就是不绑定数据，如果要填充数据，建议配合QuickCovert一起使用;
+
+      //有几种布局就bind几次
+      adapter.bind(String.class, R.layout.item_group);
+
 ### v1.0.3 补上获取所有item数据的api;
       
       ItemData dataList = adapter.getDatas();

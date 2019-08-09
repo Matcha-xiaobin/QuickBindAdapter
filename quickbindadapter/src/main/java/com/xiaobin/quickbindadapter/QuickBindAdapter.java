@@ -26,9 +26,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     //数据类型集合
     private List<Class<?>> clazzList = new ArrayList<>();
     //databinding属性名集合
-    private List<Integer> variableIds = new ArrayList<>();
+    private Map<Class<?>, Integer> variableIds = new HashMap<>();
     //item布局集合
-    private List<Integer> layoutIds = new ArrayList<>();
+    private Map<Class<?>, Integer> layoutIds = new HashMap<>();
     //需要点击事件，长按事件监听的viewId集合
     private Map<Class<?>, List<Integer>> clickListenerIds = new HashMap<>();
     private Map<Class<?>, List<Integer>> longClickListenerIds = new HashMap<>();
@@ -135,8 +135,23 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public QuickBindAdapter bind(Class<?> clazz, @LayoutRes int layoutId, int bindVariableId) {
         if (!clazzList.contains(clazz)) {
             clazzList.add(clazz);
-            layoutIds.add(layoutId);
-            variableIds.add(bindVariableId);
+            layoutIds.put(clazz, layoutId);
+            variableIds.put(clazz, bindVariableId);
+        }
+        return this;
+    }
+
+    /**
+     * 绑定布局
+     *
+     * @param clazz          数据类型
+     * @param layoutId       布局ID
+     * @return 这个对象
+     */
+    public QuickBindAdapter bind(Class<?> clazz, @LayoutRes int layoutId) {
+        if (!clazzList.contains(clazz)) {
+            clazzList.add(clazz);
+            layoutIds.put(clazz, layoutId);
         }
         return this;
     }
@@ -253,7 +268,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         if (viewType > -1) {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
-                    layoutIds.get(viewType), parent, false));
+                    layoutIds.get(clazzList.get(viewType)), parent, false));
         }
         return new BindHolder(new View(parent.getContext()));
     }
@@ -303,8 +318,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
                 });
             }
         }
-
-        holder.getBinding().setVariable(variableIds.get(itemType), dataList.get(position));
+        if (variableIds.containsKey(clz)) {
+            holder.getBinding().setVariable(variableIds.get(clz), dataList.get(position));
+        }
         if (quickCovert != null) {
             quickCovert.onCovert(holder.getBinding(), dataList.get(position), position);
         }
