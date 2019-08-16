@@ -8,6 +8,12 @@
 
 ## 更新记录
 
+### v1.0.5 新增插入数据到某个位置API;
+
+      adapter.insertData(itemData, index);
+      adapter.insertDatas(arraysData, index);
+      adapter.insertDatas(arraysData, index);
+
 ### v1.0.4 绑定布局的时候，可以不填充数据，如果要填充数据，建议配合QuickCovert一起使用;
 
       //有几种布局就bind几次

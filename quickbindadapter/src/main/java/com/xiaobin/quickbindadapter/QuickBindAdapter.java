@@ -81,6 +81,39 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     /**
+     * 插入单个数据
+     *
+     * @param data
+     * @param index
+     */
+    public void insertData(Object data, int index) {
+        this.dataList.add(index, data);
+        notifyItemRangeChanged(index, getItemCount() - index);
+    }
+
+    /**
+     * 插入多个数据
+     *
+     * @param data
+     * @param index
+     */
+    public void insertDatas(ItemData data, int index) {
+        this.dataList.addAll(index, data);
+        notifyItemRangeChanged(index, getItemCount() - index);
+    }
+
+    /**
+     * 插入多个数据
+     *
+     * @param data
+     * @param index
+     */
+    public void insertDatas(List<?> data, int index) {
+        this.dataList.addAll(index, data);
+        notifyItemRangeChanged(index, getItemCount() - index);
+    }
+
+    /**
      * 添加数据
      *
      * @param datas
