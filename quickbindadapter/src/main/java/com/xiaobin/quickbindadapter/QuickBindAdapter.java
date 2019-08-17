@@ -147,6 +147,15 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     /**
+     * 清空数据
+     *
+     */
+    public void removeAll() {
+        dataList.clear();
+        notifyDataSetChanged();
+    }
+
+    /**
      * 替换item内容
      *
      * @param position
@@ -177,8 +186,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 绑定布局
      *
-     * @param clazz          数据类型
-     * @param layoutId       布局ID
+     * @param clazz    数据类型
+     * @param layoutId 布局ID
      * @return 这个对象
      */
     public QuickBindAdapter bind(Class<?> clazz, @LayoutRes int layoutId) {
@@ -314,19 +323,18 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         }
         Class clz = clazzList.get(itemType);
         //item点击事件绑定
-        holder.itemView.setOnClickListener(view -> {
-            if (onItemClickListener != null) {
+        if (onItemClickListener != null) {
+            holder.itemView.setOnClickListener(view -> {
                 onItemClickListener.onItemClick(this, view, position);
-            }
-        });
+            });
+        }
         //item长按事件绑定
-        holder.itemView.setOnLongClickListener(view -> {
-            if (onItemLongClickListener != null) {
+        if (onItemLongClickListener != null) {
+            holder.itemView.setOnLongClickListener(view -> {
                 onItemLongClickListener.onItemLongClick(this, view, position);
                 return true;
-            }
-            return false;
-        });
+            });
+        }
         //子控件点击事件
         if (clickListenerIds.containsKey(clz)) {
             List<Integer> _ids = clickListenerIds.get(clz);

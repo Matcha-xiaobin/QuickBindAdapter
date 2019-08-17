@@ -8,10 +8,13 @@
 
 ## 更新记录
 
+### v1.0.6 修改设置item点击事件逻辑;
+
+      1.0.6 版本中，如果不是在xml布局中设置item的点击事件，则需要在设置数据前，先绑定item的点击事件，否则点击事件可能不起作用。子控件不受影响。
+
 ### v1.0.5 新增插入数据到某个位置API;
 
       adapter.insertData(itemData, index);
-      adapter.insertDatas(arraysData, index);
       adapter.insertDatas(arraysData, index);
 
 ### v1.0.4 绑定布局的时候，可以不填充数据，如果要填充数据，建议配合QuickCovert一起使用;
