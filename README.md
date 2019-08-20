@@ -4,7 +4,9 @@
 
 使用Databinding快速实现RecyclerView多布局Adapter。全项目，只需要用这一个Adapter就够了。
 
-![blockchain](https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screenshot.gif "截图") ![blockchain](https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screen_EmptyView.gif "空数据占位布局")
+<img src="https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screenshot.gif" width="375" alt="截图"/>
+
+<img src="https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screen_EmptyView.gif" width="375" alt="空数据占位布局"/>
 
 ## 更新记录
 
