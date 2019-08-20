@@ -37,7 +37,36 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     //额外的item样式处理
     private QuickCovert quickCovert;
 
+    //空数据占位图
+    private View emptyView;
+    private boolean showEmptyView;
+
     //*******************************用于外部调用的方法******************************
+
+    /**
+     * 是否显示的占位图
+     *
+     * @return
+     */
+    public boolean isShowEmptyView() {
+        return showEmptyView;
+    }
+
+    /**
+     * 设置空数据占位图
+     *
+     * @param view
+     */
+    public void setEmptyView(View view) {
+        emptyView = view;
+    }
+
+    /**
+     * 移除空数据占位图
+     */
+    public void removeEmptyView() {
+        emptyView = null;
+    }
 
     /**
      * 如果你只想用databinding来拿控件，其他的逻辑依然写在adapter中，那就实现这个吧
@@ -51,22 +80,26 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 设置新的数据
      *
-     * @param dataList
+     * @param data
      */
-    public void setNewData(List<?> dataList) {
-        this.dataList.clear();
-        this.dataList.addAll(dataList);
+    public void setNewData(List<?> data) {
+        if (data == null) {
+            this.dataList = new ItemData();
+        } else {
+            ItemData itemData = new ItemData();
+            itemData.addAll(data);
+            this.dataList = itemData;
+        }
         notifyDataSetChanged();
     }
 
     /**
      * 设置新的数据
      *
-     * @param dataList
+     * @param data
      */
-    public void setNewData(ItemData dataList) {
-        this.dataList.clear();
-        this.dataList.addAll(dataList);
+    public void setNewData(ItemData data) {
+        this.dataList = data == null ? new ItemData() : data;
         notifyDataSetChanged();
     }
 
@@ -77,7 +110,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      */
     public void addData(Object data) {
         this.dataList.add(data);
-        notifyItemInserted(getItemCount());
+        notifyItemInserted(dataList.size());
+        compatibilityDataSizeChanged(1);
     }
 
     /**
@@ -86,31 +120,34 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      * @param data
      * @param index
      */
-    public void insertData(Object data, int index) {
+    public void insertData(int index, Object data) {
         this.dataList.add(index, data);
-        notifyItemRangeChanged(index, getItemCount() - index);
+        notifyItemRangeChanged(index, dataList.size() - index);
+        compatibilityDataSizeChanged(1);
     }
 
     /**
      * 插入多个数据
      *
-     * @param data
+     * @param datas
      * @param index
      */
-    public void insertDatas(ItemData data, int index) {
-        this.dataList.addAll(index, data);
-        notifyItemRangeChanged(index, getItemCount() - index);
+    public void insertDatas(int index, ItemData datas) {
+        this.dataList.addAll(index, datas);
+        notifyItemRangeChanged(index, dataList.size() - index);
+        compatibilityDataSizeChanged(datas.size());
     }
 
     /**
      * 插入多个数据
      *
-     * @param data
+     * @param datas
      * @param index
      */
-    public void insertDatas(List<?> data, int index) {
-        this.dataList.addAll(index, data);
+    public void insertDatas(int index, List<?> datas) {
+        this.dataList.addAll(index, datas);
         notifyItemRangeChanged(index, getItemCount() - index);
+        compatibilityDataSizeChanged(datas.size());
     }
 
     /**
@@ -122,6 +159,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         int lastIndex = getItemCount();
         this.dataList.addAll(datas);
         notifyItemRangeInserted(lastIndex - datas.size(), datas.size());
+        compatibilityDataSizeChanged(datas.size());
     }
 
     /**
@@ -133,6 +171,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         int lastIndex = getItemCount();
         this.dataList.addAll(datas);
         notifyItemRangeInserted(lastIndex - datas.size(), getItemCount());
+        compatibilityDataSizeChanged(datas.size());
     }
 
     /**
@@ -141,14 +180,17 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      * @param position
      */
     public void remove(int position) {
+        if (dataList.size() <= position) {
+            return;
+        }
         dataList.remove(position);
         notifyItemRemoved(position);
-        notifyItemRangeChanged(position, getItemCount() - position);
+        compatibilityDataSizeChanged(0);
+        notifyItemRangeChanged(position, dataList.size() - position);
     }
 
     /**
      * 清空数据
-     *
      */
     public void removeAll() {
         dataList.clear();
@@ -162,6 +204,10 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      * @param itemData
      */
     public void replace(int position, Object itemData) {
+        if (dataList.size() <= position) {
+            addData(itemData);
+            return;
+        }
         dataList.set(position, itemData);
         notifyItemChanged(position);
     }
@@ -288,10 +334,33 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         this.onItemChildLongClickListener = onItemChildLongClickListener;
     }
 
+    /**
+     * 获取数据大小
+     * @return
+     */
+    public int getDataCount() {
+        return dataList.size();
+    }
+
     //*******************************用于外部调用的方法 结束******************************
+
+    /**
+     * 如果变动的数据大小和实际数据大小一致，则刷新整个列表
+     *
+     * @param size 变动的数据大小
+     */
+    private void compatibilityDataSizeChanged(int size) {
+        final int dataSize = dataList == null ? 0 : dataList.size();
+        if (dataSize == size) {
+            notifyDataSetChanged();
+        }
+    }
 
     @Override
     public int getItemViewType(int position) {
+        if (emptyView != null && dataList.size() == 0) {
+            return -1;
+        }
         //得到itemData的index，然后得到对应的数据
         Object itemData = dataList.get(position);
         //判断数据类型集合中是否有这个数据的类型
@@ -311,12 +380,15 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
                     layoutIds.get(clazzList.get(viewType)), parent, false));
+        } else if (dataList.size() == 0) {
+            return new BindHolder(emptyView);
         }
         return new BindHolder(new View(parent.getContext()));
     }
 
     @Override
     public void onBindViewHolder(@NonNull BindHolder holder, int position) {
+        if (dataList.size() == 0) return;
         int itemType = holder.getItemViewType();
         if (itemType < 0) {
             return;
@@ -370,6 +442,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     @Override
     public int getItemCount() {
+        if (emptyView != null && dataList.size() == 0) {
+            return 1;
+        }
         return dataList.size();
     }
 

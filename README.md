@@ -5,8 +5,20 @@
 使用Databinding快速实现RecyclerView多布局Adapter。全项目，只需要用这一个Adapter就够了。
 
 ![blockchain](https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screenshot.gif "截图")
+![blockchain](https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screen_EmptyView.gif "空数据占位布局")
 
 ## 更新记录
+
+### v1.0.7 新增空数据时展示占位图;
+
+      LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
+                      R.layout.layout_empty, binding.recyclerView, false);
+      layoutEmptyBinding.setTitle("暂无数据");
+      layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
+      adapter.setEmptyView(layoutEmptyBinding.getRoot());//必须在rv.setLayoutManager之后调用
+      或者：
+      View view = View.inflate(this, layoutId, recyclerView);
+      adapter.setEmptyView(view);//必须在rv.setLayoutManager之后调用
 
 ### v1.0.6 修改设置item点击事件逻辑;
 

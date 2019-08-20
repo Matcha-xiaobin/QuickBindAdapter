@@ -69,6 +69,9 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
                 case 3:
                     intent.setClass(this, GridMultiActivity.class);
                     break;
+                case 4:
+                    intent.setClass(this, EmptyDemoActivity.class);
+                    break;
                 default:
                     intent.setClass(this, LinearSingleActivity.class);
                     break;
@@ -76,6 +79,6 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
             startActivity(intent);
         });
 
-        adapter.setNewData(Arrays.asList("LinearLayout单布局", "LinearLayout多布局", "GridLayout单布局", "GridLayout多布局"));
+        adapter.setNewData(Arrays.asList("LinearLayout单布局", "LinearLayout多布局", "GridLayout单布局", "GridLayout多布局", "空数据占位布局"));
     }
 }

@@ -20,6 +20,7 @@
         <activity android:name=".ui.linear.LinearMultiActivity" />
         <activity android:name=".ui.grid.GridMultiActivity" />
         <activity android:name=".ui.grid.GridSingleActivity" />
+        <activity android:name=".ui.EmptyDemoActivity" />
     </application>
 
 </manifest>
