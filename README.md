@@ -2,9 +2,14 @@
 
 [![](https://jitpack.io/v/Matchas-xiaobin/QuickBindAdapter.svg)](https://jitpack.io/#Matchas-xiaobin/QuickBindAdapter)
 
-使用Databinding快速实现RecyclerView多布局Adapter。全项目，只需要用这一个Adapter就够了。
+使用Databinding简单快速实现RecyclerView多布局Adapter。只需要用这一个Adapter就够了。
+
+## 展示功能
 
 <img src="https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screenshot.gif" width="350" alt="截图"/>
+
+## 空数据时展示占位图
+
 <img src="https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screen_EmptyView.gif" width="350" alt="空数据占位布局"/>
 
 ## 更新记录
