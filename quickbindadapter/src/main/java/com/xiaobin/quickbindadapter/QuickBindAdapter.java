@@ -44,9 +44,18 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     //*******************************用于外部调用的方法******************************
 
     /**
+     * 链式调用
+     *
+     * @return new这个对象
+     */
+    public static QuickBindAdapter Create() {
+        return new QuickBindAdapter();
+    }
+
+    /**
      * 是否显示的占位图
      *
-     * @return
+     * @return 是否显示占位图
      */
     public boolean isShowEmptyView() {
         return showEmptyView;
@@ -55,10 +64,11 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 设置空数据占位图
      *
-     * @param view
+     * @param view 站位视图
      */
-    public void setEmptyView(View view) {
+    public QuickBindAdapter setEmptyView(View view) {
         emptyView = view;
+        return this;
     }
 
     /**
@@ -71,16 +81,17 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 如果你只想用databinding来拿控件，其他的逻辑依然写在adapter中，那就实现这个吧
      *
-     * @param quickCovert
+     * @param quickCovert 用于自定义更多功能
      */
-    public void setQuickCovert(QuickCovert quickCovert) {
+    public QuickBindAdapter setQuickCovert(QuickCovert quickCovert) {
         this.quickCovert = quickCovert;
+        return this;
     }
 
     /**
      * 设置新的数据
      *
-     * @param data
+     * @param data 全新数据
      */
     public void setNewData(List<?> data) {
         if (data == null) {
@@ -96,7 +107,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 设置新的数据
      *
-     * @param data
+     * @param data 全新数据
      */
     public void setNewData(ItemData data) {
         this.dataList = data == null ? new ItemData() : data;
@@ -106,7 +117,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 添加单个数据
      *
-     * @param data
+     * @param data 单个数据，添加到最后
      */
     public void addData(Object data) {
         this.dataList.add(data);
@@ -117,8 +128,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 插入单个数据
      *
-     * @param data
-     * @param index
+     * @param data  单个数据
+     * @param index 插入位置
      */
     public void insertData(int index, Object data) {
         this.dataList.add(index, data);
@@ -129,8 +140,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 插入多个数据
      *
-     * @param datas
-     * @param index
+     * @param datas 多个数据
+     * @param index 插入位置
      */
     public void insertDatas(int index, ItemData datas) {
         this.dataList.addAll(index, datas);
@@ -141,8 +152,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 插入多个数据
      *
-     * @param datas
-     * @param index
+     * @param datas 多个数据
+     * @param index 插入位置
      */
     public void insertDatas(int index, List<?> datas) {
         this.dataList.addAll(index, datas);
@@ -153,7 +164,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 添加数据
      *
-     * @param datas
+     * @param datas 多个数据，添加到最后
      */
     public void addDatas(List<?> datas) {
         int lastIndex = getItemCount();
@@ -165,7 +176,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 添加数据
      *
-     * @param datas
+     * @param datas 多个数据，添加到最后
      */
     public void addDatas(ItemData datas) {
         int lastIndex = getItemCount();
@@ -177,7 +188,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 移除某个item
      *
-     * @param position
+     * @param position 位置
      */
     public void remove(int position) {
         if (dataList.size() <= position) {
@@ -200,8 +211,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 替换item内容
      *
-     * @param position
-     * @param itemData
+     * @param position 位置
+     * @param itemData 单个数据
      */
     public void replace(int position, Object itemData) {
         if (dataList.size() <= position) {
@@ -247,9 +258,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 添加子控件点击监听
      *
-     * @param clazz
-     * @param viewId
-     * @return
+     * @param clazz  数据类型
+     * @param viewId 控件ID，多个
+     * @return 这个对象
      */
     public QuickBindAdapter addClickListener(Class<?> clazz, @IdRes int... viewId) {
         List<Integer> ids = new ArrayList<>(viewId.length);
@@ -263,9 +274,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 添加子控件长按监听
      *
-     * @param clazz
-     * @param viewId
-     * @return
+     * @param clazz  数据类型
+     * @param viewId 控件ID，多个
+     * @return 这个对象
      */
     public QuickBindAdapter addLongClickListener(Class<?> clazz, @IdRes int... viewId) {
         List<Integer> ids = new ArrayList<>(viewId.length);
@@ -279,8 +290,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 获取指定item内容
      *
-     * @param position
-     * @return
+     * @param position 位置
+     * @return 这个位置的数据
      */
     public Object getItemData(int position) {
         if (dataList != null && dataList.size() > position) {
@@ -292,7 +303,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 获得全部item数据
      *
-     * @return
+     * @return 整个数据ArrayList
      */
     public ItemData getDatas() {
         return dataList;
@@ -301,42 +312,47 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     /**
      * 设置item点击监听
      *
-     * @param onItemClickListener
+     * @param onItemClickListener 点击事件实现
      */
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+    public QuickBindAdapter setOnItemClickListener(OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
+        return this;
     }
 
     /**
      * 设置item长按监听
      *
-     * @param onItemLongClickListener
+     * @param onItemLongClickListener 长按事件实现
      */
-    public void setOnItemLongClickListener(OnItemLongClickListener onItemLongClickListener) {
+    public QuickBindAdapter setOnItemLongClickListener(OnItemLongClickListener onItemLongClickListener) {
         this.onItemLongClickListener = onItemLongClickListener;
+        return this;
     }
 
     /**
      * 设置子控件点击监听
      *
-     * @param onItemChildClickListener
+     * @param onItemChildClickListener 子控件点击事件实现
      */
-    public void setOnItemChildClickListener(OnItemChildClickListener onItemChildClickListener) {
+    public QuickBindAdapter setOnItemChildClickListener(OnItemChildClickListener onItemChildClickListener) {
         this.onItemChildClickListener = onItemChildClickListener;
+        return this;
     }
 
     /**
      * 设置子控件长按监听
      *
-     * @param onItemChildLongClickListener
+     * @param onItemChildLongClickListener 子控件长按事件实现
      */
-    public void setOnItemChildLongClickListener(OnItemChildLongClickListener onItemChildLongClickListener) {
+    public QuickBindAdapter setOnItemChildLongClickListener(OnItemChildLongClickListener onItemChildLongClickListener) {
         this.onItemChildLongClickListener = onItemChildLongClickListener;
+        return this;
     }
 
     /**
      * 获取数据大小
-     * @return
+     *
+     * @return 数据大小
      */
     public int getDataCount() {
         return dataList.size();
