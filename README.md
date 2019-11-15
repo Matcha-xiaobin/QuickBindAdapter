@@ -14,6 +14,11 @@
 
 ## 更新记录
 
+### v1.0.8 新增链式初始化;
+
+      类似这样：
+      QuickBindAdapter binAdapter = QuickBindAdapter.Create().bind().setxxx().setxxx();
+
 ### v1.0.7 新增空数据时展示占位图;
 
       LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
