@@ -115,6 +115,31 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     /**
+     * 移动Item
+     *
+     * @param fromPosition 要移动的Item下标
+     * @param toPosition   要移动到的位置下标
+     */
+    public void movedPositions(int fromPosition, int toPosition) {
+        this.dataList.add(toPosition, this.dataList.remove(fromPosition));//数据更换
+        notifyItemMoved(fromPosition, toPosition);
+        notifyItemRangeChanged(Math.min(fromPosition, toPosition), Math.abs(fromPosition - toPosition) + 1);
+    }
+
+    /**
+     * TODO 互换Item, 暂未测试，所以不给调用
+     *
+     * @param fromPosition 要互换的Item1下标
+     * @param toPosition   要互换到Item2下标
+     */
+    private void swapItem(int fromPosition, int toPosition) {
+        this.dataList.add(Math.min(fromPosition, toPosition), this.dataList.remove(Math.max(fromPosition, toPosition)));//数据更换
+        this.dataList.add(Math.max(fromPosition, toPosition), this.dataList.remove(Math.min(fromPosition, toPosition) + 1));
+        notifyItemMoved(fromPosition, toPosition);
+        notifyItemRangeChanged(Math.min(fromPosition, toPosition), Math.abs(fromPosition - toPosition) + 1);
+    }
+
+    /**
      * 添加单个数据
      *
      * @param data 单个数据，添加到最后
@@ -133,6 +158,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      */
     public void insertData(int index, Object data) {
         this.dataList.add(index, data);
+        notifyItemInserted(index);
         notifyItemRangeChanged(index, dataList.size() - index);
         compatibilityDataSizeChanged(1);
     }
