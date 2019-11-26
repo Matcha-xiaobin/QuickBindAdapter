@@ -14,6 +14,11 @@
 
 ## 更新记录
 
+### v1.0.9 新增移动位置方法;
+
+      使用方式：
+      movedPositions(fromPosition, toPosition);
+
 ### v1.0.8 新增链式初始化;
 
       类似这样：
