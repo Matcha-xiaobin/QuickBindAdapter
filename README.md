@@ -4,15 +4,14 @@
 
 使用Databinding简单快速实现RecyclerView多布局Adapter。只需要用这一个Adapter就够了。
 
-## 展示功能
-
-<img src="https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screenshot.gif" width="350" alt="截图"/>
-
-## 空数据时展示占位图
-
-<img src="https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/master/screenshot/Screen_EmptyView.gif" width="350" alt="空数据占位布局"/>
-
 ## 更新记录
+
+### v1.1.0 增加简单的加载更多功能;
+
+      使用方式：
+      setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
+                                            @NonNull RecyclerView recyclerView);
+                                            
 
 ### v1.0.9 新增移动位置方法;
 

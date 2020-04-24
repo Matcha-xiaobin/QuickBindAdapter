@@ -8,6 +8,8 @@ import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -23,6 +25,15 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     private final String TAG = "QuickBindAdapter";
 
+    private final int NONE_TYPE = -1;
+    private final int LOAD_MORE_TYPE = -2;
+
+    enum LoadMoreState {
+        LOADING_MORE, LOAD_SUCCESS, LOAD_FAIL, LOAD_COMPLETE
+    }
+
+    private LoadMoreState loadMoreState = LoadMoreState.LOAD_SUCCESS;
+
     //数据类型集合
     private List<Class<?>> clazzList = new ArrayList<>();
     //databinding属性名集合
@@ -37,11 +48,152 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     //额外的item样式处理
     private QuickCovert quickCovert;
 
+    private OnLoadMoreListener onLoadMoreListener;
+    private RecyclerView mRecyclerView;
+    private GridLayoutManager.SpanSizeLookup spanSizeLookup;
+    private boolean isHasMore = true;
+    private String loadMoreText = "努力加载中...";
+    private String loadFailText = "加载失败了!";
+    private String loadCompleteText = "我是有底线的";
+    private String loadSuccessText = "加载完成";
+    private int oldScrollY = 0;
+
     //空数据占位图
     private View emptyView;
     private boolean showEmptyView;
 
     //*******************************用于外部调用的方法******************************
+
+    public void setLoadMoreText(String loadMoreText) {
+        this.loadMoreText = loadMoreText;
+    }
+
+    public void setLoadFailText(String loadFailText) {
+        this.loadFailText = loadFailText;
+    }
+
+    public void setLoadCompleteText(String loadCompleteText) {
+        this.loadCompleteText = loadCompleteText;
+    }
+
+    public void setSpanSizeLookup(GridLayoutManager.SpanSizeLookup spanLook) {
+        this.spanSizeLookup = spanSizeLookup;
+        setupSpanSizeLookUp();
+    }
+
+    private void setupSpanSizeLookUp() {
+        if (mRecyclerView != null) {
+            RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+            if (layoutManager instanceof GridLayoutManager) {
+                GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
+                GridLayoutManager.SpanSizeLookup spanSizeLookup = gridLayoutManager.getSpanSizeLookup();
+                gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                    @Override
+                    public int getSpanSize(int position) {
+                        if (onLoadMoreListener != null && getItemViewType(position) == LOAD_MORE_TYPE) {
+                            return gridLayoutManager.getSpanCount();
+                        } else if (QuickBindAdapter.this.spanSizeLookup != null) {
+                            return QuickBindAdapter.this.spanSizeLookup.getSpanSize(position);
+                        } else if (spanSizeLookup != null) {
+                            return spanSizeLookup.getSpanSize(position);
+                        }
+                        return 1;
+                    }
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        mRecyclerView = recyclerView;
+        setupSpanSizeLookUp();
+    }
+
+    /**
+     * 设置启用加载更多
+     *
+     * @param onLoadMoreListener 加载更多
+     * @param recyclerView       recyclerView
+     */
+    public void setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
+                                      @NonNull RecyclerView recyclerView) {
+        this.onLoadMoreListener = onLoadMoreListener;
+        mRecyclerView = recyclerView;
+        mRecyclerView.setAdapter(this);
+        setupSpanSizeLookUp();
+        setupScrollListener();
+    }
+
+    public void loadMoreSuccess() {
+        isHasMore = true;
+        loadMoreState = LoadMoreState.LOAD_SUCCESS;
+        notifyItemChanged(getItemCount() - 1);
+    }
+
+    public void loadMoreComplete() {
+        isHasMore = false;
+        loadMoreState = LoadMoreState.LOAD_COMPLETE;
+        notifyItemChanged(getItemCount() - 1);
+    }
+
+    public void loadMoreFail() {
+        loadMoreState = LoadMoreState.LOAD_FAIL;
+        notifyItemChanged(getItemCount() - 1);
+    }
+
+    /**
+     * 设置启用加载更多
+     * 必须在绑定recyclerView之后才能调用
+     *
+     * @param onLoadMoreListener 加载更多
+     */
+    @Deprecated
+    public void setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener) {
+        if (mRecyclerView == null)
+            throw new NullPointerException("请在 onAttachedToRecyclerView 之后在调用" +
+                    ".setOnLoadMoreListener(onLoadMoreListener);");
+        this.onLoadMoreListener = onLoadMoreListener;
+        setupSpanSizeLookUp();
+        setupScrollListener();
+    }
+
+    private void setupScrollListener() {
+        if (mRecyclerView == null) return;
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (oldScrollY > dy) {
+                    oldScrollY = dy;
+                    return;
+                }
+                oldScrollY = dy;
+                if (mRecyclerView.getLayoutManager() == null) return;
+                int lastItemIndex = 0;
+                if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+                    lastItemIndex = layoutManager.findLastVisibleItemPosition();
+                } else if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
+                    GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
+                    lastItemIndex = layoutManager.findLastVisibleItemPosition();
+                } else {
+                    return;
+                }
+                if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
+                    //是在加载更多
+                    if (loadMoreState != LoadMoreState.LOADING_MORE) {
+                        if (onLoadMoreListener != null && isHasMore) {
+                            loadMoreState = LoadMoreState.LOADING_MORE;
+                            notifyItemChanged(lastItemIndex);
+                            onLoadMoreListener.onLoadMore();
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     /**
      * 链式调用
@@ -101,6 +253,11 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             itemData.addAll(data);
             this.dataList = itemData;
         }
+        if (dataList.size() == 0) {
+            isHasMore = false;
+        } else {
+            isHasMore = true;
+        }
         notifyDataSetChanged();
     }
 
@@ -111,6 +268,11 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      */
     public void setNewData(ItemData data) {
         this.dataList = data == null ? new ItemData() : data;
+        if (dataList.size() == 0) {
+            isHasMore = false;
+        } else {
+            isHasMore = true;
+        }
         notifyDataSetChanged();
     }
 
@@ -122,19 +284,6 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      */
     public void movedPositions(int fromPosition, int toPosition) {
         this.dataList.add(toPosition, this.dataList.remove(fromPosition));//数据更换
-        notifyItemMoved(fromPosition, toPosition);
-        notifyItemRangeChanged(Math.min(fromPosition, toPosition), Math.abs(fromPosition - toPosition) + 1);
-    }
-
-    /**
-     * TODO 互换Item, 暂未测试，所以不给调用
-     *
-     * @param fromPosition 要互换的Item1下标
-     * @param toPosition   要互换到Item2下标
-     */
-    private void swapItem(int fromPosition, int toPosition) {
-        this.dataList.add(Math.min(fromPosition, toPosition), this.dataList.remove(Math.max(fromPosition, toPosition)));//数据更换
-        this.dataList.add(Math.max(fromPosition, toPosition), this.dataList.remove(Math.min(fromPosition, toPosition) + 1));
         notifyItemMoved(fromPosition, toPosition);
         notifyItemRangeChanged(Math.min(fromPosition, toPosition), Math.abs(fromPosition - toPosition) + 1);
     }
@@ -400,8 +549,12 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     @Override
     public int getItemViewType(int position) {
+        if (onLoadMoreListener != null && position == getItemCount() - 1) {
+            //如果设置了加载更多功能，则最后一个为加载更多的布局
+            return LOAD_MORE_TYPE;
+        }
         if (emptyView != null && dataList.size() == 0) {
-            return -1;
+            return NONE_TYPE;
         }
         //得到itemData的index，然后得到对应的数据
         Object itemData = dataList.get(position);
@@ -410,15 +563,20 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             //如果有这个类型，则返回这个类型所在集合的index
             return clazzList.indexOf(itemData.getClass());
         }
-        //如果没有这个类型，则返回-1
-        return -1;
+        //如果没有这个类型，则返回NONE_TYPE
+        return NONE_TYPE;
     }
 
     @NonNull
     @Override
     public BindHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         //根据getItemViewType方法返回的viewType，判断是否是头部
-        if (viewType > -1) {
+        if (viewType == LOAD_MORE_TYPE) {
+            //加载更多布局
+            return new BindHolder(DataBindingUtil.inflate(
+                    LayoutInflater.from(parent.getContext()),
+                    R.layout.item_loadmore, parent, false));
+        } else if (viewType != NONE_TYPE) {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
                     layoutIds.get(clazzList.get(viewType)), parent, false));
@@ -432,9 +590,27 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public void onBindViewHolder(@NonNull BindHolder holder, int position) {
         if (dataList.size() == 0) return;
         int itemType = holder.getItemViewType();
-        if (itemType < 0) {
+        if (itemType == LOAD_MORE_TYPE) {
+            //加载更多
+            holder.getBinding().setVariable(BR.loading, false);
+            switch (loadMoreState) {
+                case LOADING_MORE:
+                    holder.getBinding().setVariable(BR.loading, true);
+                    holder.getBinding().setVariable(BR.text, loadMoreText);
+                    break;
+                case LOAD_SUCCESS:
+                    holder.getBinding().setVariable(BR.text, loadSuccessText);
+                    break;
+                case LOAD_FAIL:
+                    holder.getBinding().setVariable(BR.text, loadFailText);
+                    break;
+                case LOAD_COMPLETE:
+                    holder.getBinding().setVariable(BR.text, loadCompleteText);
+                    break;
+            }
             return;
         }
+        if (itemType <= NONE_TYPE) return;
         Class clz = clazzList.get(itemType);
         //item点击事件绑定
         if (onItemClickListener != null) {
@@ -487,6 +663,10 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         if (emptyView != null && dataList.size() == 0) {
             return 1;
         }
+        if (onLoadMoreListener != null) {
+            //如果真数据大于0，并且有设置加载更多
+            return dataList.size() + 1;
+        }
         return dataList.size();
     }
 
@@ -528,5 +708,12 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      */
     public interface OnItemChildLongClickListener {
         void onItemLongClick(QuickBindAdapter adapter, View view, int position);
+    }
+
+    /**
+     * 加载更多
+     */
+    public interface OnLoadMoreListener {
+        void onLoadMore();
     }
 }

@@ -2,6 +2,7 @@ package com.xiaobin.bindingadapter.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -71,7 +72,10 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
                     }
                     startActivity(intent);
                 });
-        binding.recyclerView.setAdapter(adapter);
+        adapter.setOnLoadMoreListener(() -> {
+            Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
+        }, binding.recyclerView);
+//        binding.recyclerView.setAdapter(adapter);
 
         adapter.setNewData(Arrays.asList("LinearLayout单布局", "LinearLayout多布局", "GridLayout单布局", "GridLayout多布局", "空数据占位布局"));
     }
