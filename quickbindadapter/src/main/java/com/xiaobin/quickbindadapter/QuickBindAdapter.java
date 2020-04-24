@@ -56,7 +56,6 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     private String loadFailText = "加载失败了!";
     private String loadCompleteText = "我是有底线的";
     private String loadSuccessText = "加载完成";
-    private int oldScrollY = 0;
 
     //空数据占位图
     private View emptyView;
@@ -165,24 +164,32 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (oldScrollY > dy) {
-                    oldScrollY = dy;
+                if (dy < 0) {
+                    //下拉不触发
                     return;
                 }
-                oldScrollY = dy;
                 if (mRecyclerView.getLayoutManager() == null) return;
                 int lastItemIndex = 0;
+                int firstItemIndex = 0;
                 if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager) {
                     LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
                     lastItemIndex = layoutManager.findLastVisibleItemPosition();
+                    firstItemIndex = layoutManager.findFirstCompletelyVisibleItemPosition();
                 } else if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
                     GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
                     lastItemIndex = layoutManager.findLastVisibleItemPosition();
+                    firstItemIndex = layoutManager.findFirstCompletelyVisibleItemPosition();
                 } else {
                     return;
                 }
                 if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
-                    //是在加载更多
+                    if (firstItemIndex == 0) {
+                        //如果第一个完全显示的是第一个item，则代表高度没有充满一页，不触发加载更多
+                        loadMoreState = LoadMoreState.LOAD_COMPLETE;
+                        notifyItemChanged(lastItemIndex);
+                        return;
+                    }
+                    //触发加载更多
                     if (loadMoreState != LoadMoreState.LOADING_MORE) {
                         if (onLoadMoreListener != null && isHasMore) {
                             loadMoreState = LoadMoreState.LOADING_MORE;
