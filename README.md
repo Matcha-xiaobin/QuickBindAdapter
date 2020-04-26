@@ -6,7 +6,7 @@
 
 ## 更新记录
 
-### v1.1.0 增加简单的加载更多功能;
+### v1.1.0.c 增加简单的加载更多功能;
 
       使用方式：
       setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
