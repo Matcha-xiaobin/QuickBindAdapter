@@ -160,7 +160,7 @@
     
     movedPositions(fromPosition, toPosition);
     
-### v1.1.0.c 增加简单的加载更多功能;
+### 加载更多功能;
 
       使用方式：
       adapter.setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
@@ -179,4 +179,4 @@
       修改 刷新完成，没有更多数据了 文字:
       adapter.setLoadCompleteText("");
       
-      暂未加入 自定义加载更多 的布局功能
+      暂未加入 自定义加载更多 的布局功能, 后续在加
