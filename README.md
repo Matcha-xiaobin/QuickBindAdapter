@@ -12,63 +12,7 @@
       setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
                                             @NonNull RecyclerView recyclerView);
                                             
-
-### v1.0.9 新增移动位置方法;
-
-      使用方式：
-      movedPositions(fromPosition, toPosition);
-
-### v1.0.8 新增链式初始化;
-
-      类似这样：
-      QuickBindAdapter binAdapter = QuickBindAdapter.Create().bind().setxxx().setxxx();
-
-### v1.0.7 新增空数据时展示占位图;
-
-      LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
-                      R.layout.layout_empty, binding.recyclerView, false);
-      layoutEmptyBinding.setTitle("暂无数据");
-      layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
-      adapter.setEmptyView(layoutEmptyBinding.getRoot());
-      或者：
-      View view = View.inflate(this, layoutId, recyclerView);
-      adapter.setEmptyView(view);
-
-### v1.0.6 修改设置item点击事件逻辑;
-
-      1.0.6 版本中，如果不是在xml布局中设置item的点击事件，则需要在设置数据前，先绑定item的点击事件，否则点击事件可能不起作用。子控件不受影响。
-
-### v1.0.5 新增插入数据到某个位置API;
-
-      adapter.insertData(itemData, index);
-      adapter.insertDatas(arraysData, index);
-
-### v1.0.4 绑定布局的时候，可以不填充数据，如果要填充数据，建议配合QuickCovert一起使用;
-
-      //有几种布局就bind几次
-      adapter.bind(String.class, R.layout.item_group);
-
-### v1.0.3 补上获取所有item数据的api;
-      
-      ItemData dataList = adapter.getDatas();
-      
-### v1.0.2 新增QuickCovert接口，用于只使用Databinding绑定控件，在adapter中写逻辑;
-      
-      adapter.setQuickCovert((binding, itemData, position) -> {
-          // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
-          //如果是多布局，则需要做下判断：
-          if (binding instanceof ItemStartBinding) {
-              // R.layout.item_start 类型 的item
-          }
-          //也可以这样：
-          if (itemData instanceof String) {
-              // String 类型 的item
-          }
-      });
-      
-
 ## 在项目中引用
-
 
 ### Gradle
    Step 1. Add it in your root build.gradle at the end of repositories
@@ -89,12 +33,42 @@
 ### 在代码中使用：
 
     QuickBindAdapter adapter = new QuickBindAdapter();
+    
+    或者链式初始化
+    QuickBindAdapter binAdapter = QuickBindAdapter.Create().bind().setxxx().setxxx();
 
 ### 绑定数据类型和布局  有几种布局，就bind几次，每一种布局要对应一种数据类型
 
     adapter.bind(DataBean.class, R.layout.item_child, BR.data);
-
     adapter.bind(String.class, R.layout.item_group, BR.data);
+    
+    绑定布局的时候，可以不填充数据，如果要填充数据，建议配合QuickCovert一起使用:
+    adapter.bind(String.class, R.layout.item_group);
+    
+### 新增空数据时展示占位图;
+    
+    LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
+                    R.layout.layout_empty, binding.recyclerView, false);
+    layoutEmptyBinding.setTitle("暂无数据");
+    layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
+    adapter.setEmptyView(layoutEmptyBinding.getRoot());
+    或者：
+    View view = View.inflate(this, layoutId, recyclerView);
+    adapter.setEmptyView(view);
+    
+### QuickCovert接口，用于只使用Databinding绑定控件，手动写复杂逻辑;
+          
+    adapter.setQuickCovert((binding, itemData, position) -> {
+              // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
+              //如果是多布局，则需要做下判断：
+              if (binding instanceof ItemStartBinding) {
+                  // R.layout.item_start 类型 的item
+              }
+              //也可以这样：
+              if (itemData instanceof String) {
+                  // String 类型 的item
+              }
+          });
 
 ### 添加子控件点击事件  对应每一种数据类型的item，添加其子控件的点击事件
 
@@ -116,13 +90,19 @@
 
     adapter.setOnItemChildLongClickListener
 
+### 获取item数据的api;
+      
+      所有数据
+      ItemData dataList = adapter.getDatas();
+      
+      单个数据
+      Object itemData = adapter.getItemData(position);
 
 ### 设置新数据：
 
     dataList 如果是需要多布局，建议使用ItemData 添加数据。
     
     例如：
-    
         ItemData dataList = new ItemData();
         ChatListBean item;
         for (int i = 0; i < 15; i++) {
@@ -152,19 +132,51 @@
                       
     adapter.setNewData(dataList);
                                                      
-### 添加单个item
-                                                     
+### 添加数据
+                                  
+    添加单个
     adapter.addData(object);
                                                      
-### 添加多个item
-                                                     
+    添加多个
     adapter.addDatas(arrayList);
+                                       
+### 插入数据到某个位置API;
+                                       
+    单个插入
+    adapter.insertData(index, itemData);
+    
+    多个插入
+    adapter.insertDatas(index, arraysData);
                                                      
-### 移除某个item
+### 移除单个
                                                      
     adapter.remove(position);
     
-### 替换某个item
+### 替换单个
 
     adapter.replace(position, object);
-  
+    
+### 移动位置
+    
+    movedPositions(fromPosition, toPosition);
+    
+### v1.1.0.c 增加简单的加载更多功能;
+
+      使用方式：
+      adapter.setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
+                                            @NonNull RecyclerView recyclerView);
+      刷新成功:
+      adapter.loadMoreSuccess();
+      刷新失败:
+      adapter.loadMoreFail();
+      刷新完成，没有更多数据了:
+      adapter.loadMoreComplete();
+      
+      修改 刷新成功 文字:
+      adapter.setLoadMoreText("");
+      修改 刷新失败 文字:
+      adapter.setLoadFailText("");
+      修改 刷新完成，没有更多数据了 文字:
+      adapter.setLoadCompleteText("");
+      
+      暂未加入 自定义加载更多 的布局功能
