@@ -165,6 +165,9 @@
     
 ### 加载更多功能;
 
+      注意：
+      数据没满一页的时候, 是不能触发上拉加载更多功能, 后续在考虑要不要加入这个开关
+      
       使用方式：
       adapter.setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
                                             @NonNull RecyclerView recyclerView);
