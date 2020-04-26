@@ -29,10 +29,10 @@
                       R.layout.layout_empty, binding.recyclerView, false);
       layoutEmptyBinding.setTitle("暂无数据");
       layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
-      adapter.setEmptyView(layoutEmptyBinding.getRoot());//必须在rv.setLayoutManager之后调用
+      adapter.setEmptyView(layoutEmptyBinding.getRoot());
       或者：
       View view = View.inflate(this, layoutId, recyclerView);
-      adapter.setEmptyView(view);//必须在rv.setLayoutManager之后调用
+      adapter.setEmptyView(view);
 
 ### v1.0.6 修改设置item点击事件逻辑;
 
