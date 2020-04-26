@@ -11,6 +11,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,6 +105,16 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     @Override
+    public void onViewAttachedToWindow(@NonNull BindHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
+        if (lp instanceof StaggeredGridLayoutManager.LayoutParams && holder.getItemViewType() == LOAD_MORE_TYPE) {
+            StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
+            p.setFullSpan(true);
+        }
+    }
+
+    @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         mRecyclerView = recyclerView;
@@ -171,23 +182,22 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
                     }
                     if (mRecyclerView.getLayoutManager() == null) return;
                     int lastItemIndex = 0;
-                    int firstItemIndex = 0;
                     if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager) {
                         LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
                         if (layoutManager.getChildCount() < 1) return;
                         lastItemIndex = layoutManager.findLastVisibleItemPosition();
-                        firstItemIndex = layoutManager.findFirstCompletelyVisibleItemPosition();
                     } else if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
                         GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
                         if (layoutManager.getChildCount() < 1) return;
                         lastItemIndex = layoutManager.findLastVisibleItemPosition();
-                        firstItemIndex = layoutManager.findFirstCompletelyVisibleItemPosition();
-                    } else {
-                        return;
+                    } else if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
+                        StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
+                        final int[] positions = new int[staggeredGridLayoutManager.getSpanCount()];
+                        staggeredGridLayoutManager.findLastVisibleItemPositions(positions);
+                        lastItemIndex = getTheBiggestNumber(positions);
                     }
                     if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
-                        if (firstItemIndex == 0) {
-                            //如果第一个完全显示的是第一个item，则代表高度没有充满一页，不触发加载更多
+                        if (getDataCount() == 0) {
                             loadMoreState = LoadMoreState.LOAD_COMPLETE;
                             notifyItemChanged(lastItemIndex);
                             return;
@@ -205,6 +215,19 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             });
 
         });
+    }
+
+    private int getTheBiggestNumber(int[] numbers) {
+        int tmp = -1;
+        if (numbers == null || numbers.length == 0) {
+            return tmp;
+        }
+        for (int num : numbers) {
+            if (num > tmp) {
+                tmp = num;
+            }
+        }
+        return tmp;
     }
 
     /**
