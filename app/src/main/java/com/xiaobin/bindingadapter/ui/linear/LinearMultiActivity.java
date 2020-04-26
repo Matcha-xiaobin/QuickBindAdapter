@@ -52,7 +52,33 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
 //        binding.recyclerView.setAdapter(adapter);
         adapter.setOnLoadMoreListener(() -> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
-            new Handler().postDelayed(adapter::loadMoreComplete, 3000);
+            new Handler().postDelayed(() -> {
+                ItemData dataList = new ItemData();
+                ChatListBean item;
+                for (int i = 0; i < 15; i++) {
+                    switch (i) {
+                        case 0:
+                            dataList.add("分组一");
+                            break;
+                        case 3:
+                            dataList.add("分组二");
+                            break;
+                        case 5:
+                            dataList.add("分组三");
+                            break;
+                        case 7:
+                            dataList.add("分组四");
+                            break;
+                        default:
+                            break;
+                    }
+                    item = new ChatListBean();
+                    item.setId(String.valueOf(i));
+                    dataList.add(item);
+                }
+                adapter.addDatas(dataList);
+                adapter.loadMoreComplete();
+            }, 3000);
         }, binding.recyclerView);
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
         adapter.setQuickCovert((binding, itemData, position) -> {

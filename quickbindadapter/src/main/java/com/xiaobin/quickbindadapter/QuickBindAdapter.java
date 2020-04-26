@@ -54,8 +54,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     private boolean isHasMore = true;
     private String loadMoreText = "努力加载中...";
     private String loadFailText = "加载失败了!";
-    private String loadCompleteText = "我是有底线的";
-    private String loadSuccessText = "加载完成";
+    private String loadCompleteText = "没有更多数据";
+    private String loadSuccessText = "加载成功";
 
     //空数据占位图
     private View emptyView;
@@ -356,7 +356,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public void addDatas(List<?> datas) {
         int lastIndex = getItemCount();
         this.dataList.addAll(datas);
-        notifyItemRangeInserted(lastIndex - datas.size(), datas.size());
+        notifyItemRangeInserted(lastIndex - 1, datas.size());
         compatibilityDataSizeChanged(datas.size());
     }
 
@@ -368,7 +368,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public void addDatas(ItemData datas) {
         int lastIndex = getItemCount();
         this.dataList.addAll(datas);
-        notifyItemRangeInserted(lastIndex - datas.size(), getItemCount());
+        notifyItemRangeInserted(lastIndex - 1, datas.size());
         compatibilityDataSizeChanged(datas.size());
     }
 
@@ -564,7 +564,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         if (emptyView != null && dataList.size() == 0) {
             return 1;
         }
-        if (onLoadMoreListener != null) {
+        if (onLoadMoreListener != null && dataList.size() != 0) {
             //如果真数据大于0，并且有设置加载更多
             return dataList.size() + 1;
         }
