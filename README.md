@@ -33,24 +33,27 @@
 ### 在代码中使用：
 
     QuickBindAdapter adapter = new QuickBindAdapter();
+    adapter.bind()
+    adapter.setxxx()
+    ...
     
     或者链式初始化
     QuickBindAdapter binAdapter = QuickBindAdapter.Create().bind().setxxx().setxxx();
 
 ### 绑定数据类型和布局  有几种布局，就bind几次，每一种布局要对应一种数据类型
 
+    三个参数分别为: 数据类型 , 对应的布局 , 这个数据要设置到的属性
     adapter.bind(DataBean.class, R.layout.item_child, BR.data);
     adapter.bind(String.class, R.layout.item_group, BR.data);
     
-    绑定布局的时候，可以不填充数据，如果要填充数据，建议配合QuickCovert一起使用:
+    绑定布局的时候，可以不绑定数据要设置到哪个属性
+    一般用来穿插一些固定内容不变化的布局，或者想用代码动态配置布局的，建议配合QuickCovert一起使用:
     adapter.bind(String.class, R.layout.item_group);
     
-### 新增空数据时展示占位图;
+### 新增空数据时展示全屏占位图;
     
     LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
                     R.layout.layout_empty, binding.recyclerView, false);
-    layoutEmptyBinding.setTitle("暂无数据");
-    layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
     adapter.setEmptyView(layoutEmptyBinding.getRoot());
     或者：
     View view = View.inflate(this, layoutId, recyclerView);
