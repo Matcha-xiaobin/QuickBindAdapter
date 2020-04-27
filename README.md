@@ -48,22 +48,21 @@
     
     绑定布局的时候，可以不绑定数据要设置到哪个属性
     一般用来穿插一些固定内容不变化的布局，或者想用代码动态配置布局的，建议配合QuickCovert一起使用:
-    adapter.bind(String.class, R.layout.item_group);
+    adapter.bind(class, layoutId);
     
 ### 新增空数据时展示全屏占位图;
     
     请注意: 
-    不要使用: View.inflate(context, R.layout.xxx, recyclerView);
-    不要使用: View.inflate(context, R.layout.xxx, recyclerView);
-    不要使用: View.inflate(context, R.layout.xxx, recyclerView);
+    不要使用: View.inflate(context, layoutId, recyclerView);
+    不要使用: View.inflate(context, layoutId, recyclerView);
+    不要使用: View.inflate(context, layoutId, recyclerView);
     
     View.inflate正确使用方式: 
-    View.inflate(context, R.layout.xxx, null); 注意第三个root参数。
+    View.inflate(context, layoutId, null); 注意第三个root参数。
     
     或者用databinding:
     LayoutEmptyBinding layoutEmptyBinding = 
-        DataBindingUtil.inflate(LayoutInflater.from(context), 
-        layoutId, binding.recyclerView, false);
+        DataBindingUtil.inflate(LayoutInflater.from(context), layoutId, binding.recyclerView, false);
     adapter.setEmptyView(layoutEmptyBinding.getRoot());
     
     或者用LayoutInflater:
