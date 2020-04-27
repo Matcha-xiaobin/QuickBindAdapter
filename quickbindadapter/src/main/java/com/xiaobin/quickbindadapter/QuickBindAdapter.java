@@ -112,11 +112,11 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public void onViewAttachedToWindow(@NonNull BindHolder holder) {
         super.onViewAttachedToWindow(holder);
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-        if (lp instanceof StaggeredGridLayoutManager.LayoutParams &&
-                holder.getItemViewType() == LOAD_MORE_TYPE || holder.getItemViewType() == EMPTY_VIEW_TYPE
-        ) {
-            StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
-            p.setFullSpan(true);
+        if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+            if (holder.getItemViewType() == LOAD_MORE_TYPE || holder.getItemViewType() == EMPTY_VIEW_TYPE) {
+                StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
+                p.setFullSpan(true);
+            }
         }
     }
 
