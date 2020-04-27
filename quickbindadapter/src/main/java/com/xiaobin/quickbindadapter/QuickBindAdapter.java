@@ -26,7 +26,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     private final String TAG = "QuickBindAdapter";
 
-    private final int NONE_TYPE = -1;
+    private final int EMPTY_VIEW_TYPE = -1;
     private final int LOAD_MORE_TYPE = -2;
 
     enum LoadMoreState {
@@ -90,11 +90,15 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
                 gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                     @Override
                     public int getSpanSize(int position) {
-                        if (onLoadMoreListener != null && getItemViewType(position) == LOAD_MORE_TYPE) {
+                        if (getItemViewType(position) == LOAD_MORE_TYPE ||
+                                getItemViewType(position) == EMPTY_VIEW_TYPE) {
+                            //不可被控的, 空布局 or 加载更多布局
                             return gridLayoutManager.getSpanCount();
                         } else if (QuickBindAdapter.this.spanSizeLookup != null) {
+                            //额外的
                             return QuickBindAdapter.this.spanSizeLookup.getSpanSize(position);
                         } else if (spanSizeLookup != null) {
+                            // 原本的
                             return spanSizeLookup.getSpanSize(position);
                         }
                         return 1;
@@ -108,7 +112,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public void onViewAttachedToWindow(@NonNull BindHolder holder) {
         super.onViewAttachedToWindow(holder);
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-        if (lp instanceof StaggeredGridLayoutManager.LayoutParams && holder.getItemViewType() == LOAD_MORE_TYPE) {
+        if (lp instanceof StaggeredGridLayoutManager.LayoutParams &&
+                holder.getItemViewType() == LOAD_MORE_TYPE || holder.getItemViewType() == EMPTY_VIEW_TYPE
+        ) {
             StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
             p.setFullSpan(true);
         }
@@ -601,7 +607,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             return LOAD_MORE_TYPE;
         }
         if (emptyView != null && dataList.size() == 0) {
-            return NONE_TYPE;
+            return EMPTY_VIEW_TYPE;
         }
         //得到itemData的index，然后得到对应的数据
         Object itemData = dataList.get(position);
@@ -611,7 +617,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             return clazzList.indexOf(itemData.getClass());
         }
         //如果没有这个类型，则返回NONE_TYPE
-        return NONE_TYPE;
+        return EMPTY_VIEW_TYPE;
     }
 
     @NonNull
@@ -623,7 +629,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
                     R.layout.item_loadmore, parent, false));
-        } else if (viewType != NONE_TYPE) {
+        } else if (viewType != EMPTY_VIEW_TYPE) {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
                     layoutIds.get(clazzList.get(viewType)), parent, false));
@@ -662,7 +668,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             }
             return;
         }
-        if (itemType <= NONE_TYPE) return;
+        if (itemType <= EMPTY_VIEW_TYPE) return;
         Class clz = clazzList.get(itemType);
         //item点击事件绑定
         if (onItemClickListener != null) {
