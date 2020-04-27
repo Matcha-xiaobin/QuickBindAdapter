@@ -52,11 +52,23 @@
     
 ### 新增空数据时展示全屏占位图;
     
-    LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
-                    R.layout.layout_empty, binding.recyclerView, false);
+    请注意: 
+    不要使用: View.inflate(context, R.layout.xxx, recyclerView);
+    不要使用: View.inflate(context, R.layout.xxx, recyclerView);
+    不要使用: View.inflate(context, R.layout.xxx, recyclerView);
+    
+    View.inflate正确使用方式: 
+    View.inflate(context, R.layout.xxx, null); 注意第三个root参数。
+    
+    或者用databinding:
+    LayoutEmptyBinding layoutEmptyBinding = 
+        DataBindingUtil.inflate(LayoutInflater.from(context), 
+        layoutId, binding.recyclerView, false);
     adapter.setEmptyView(layoutEmptyBinding.getRoot());
-    或者：
-    View view = View.inflate(this, layoutId, recyclerView);
+    
+    或者用LayoutInflater:
+    View view = LayoutInflater.from(context).inflate（context, layoutId, recyclerView, false);
+    View view = LayoutInflater.from(context).inflate（context, layoutId, null, false);
     adapter.setEmptyView(view);
     
 ### QuickCovert接口，用于只使用Databinding绑定控件，手动写复杂逻辑;
