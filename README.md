@@ -6,7 +6,7 @@
 
 ## 更新记录
 
-### v1.1.0.c 增加简单的加载更多功能;
+### v1.1.0.f 增加简单的加载更多功能;
 
       使用方式：
       setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
@@ -27,7 +27,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.1.0.c'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.1.0.f'
     }
 
 ### 在代码中使用：
