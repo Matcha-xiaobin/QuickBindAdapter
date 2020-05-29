@@ -39,6 +39,7 @@ public abstract class BaseLoadView<T extends ViewDataBinding> {
                 parent, false);
         bindHolder = new BindHolder(loadView.getRoot());
         initView(loadView);
+        isLoadMoreEnd();
     }
 
     public void isLoadMore() {
