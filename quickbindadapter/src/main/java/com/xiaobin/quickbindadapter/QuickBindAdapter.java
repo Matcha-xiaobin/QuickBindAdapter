@@ -668,7 +668,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
                 return loadView.get(parent);
             }
             return new BindHolder(new View(parent.getContext()));
-        } else if (viewType != EMPTY_VIEW_TYPE) {
+        } else if (viewType >= 0) {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
                     layoutIds.get(clazzList.get(viewType)), parent, false));
