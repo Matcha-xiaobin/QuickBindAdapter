@@ -144,8 +144,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     public void loadMoreSuccess() {
-        if (getDataCount() == 0 || loadView == null) return;
-        isHasMore = true;
+        if (getDataCount() == 0 || loadView == null || !isHasMore) return;
         loadView.isLoadMoreSuccess();
     }
 
@@ -162,7 +161,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      * 加载更多失败了
      */
     public void loadMoreFail() {
-        if (getDataCount() == 0 || loadView == null) return;
+        if (getDataCount() == 0 || loadView == null || !isHasMore) return;
         loadView.isLoadMoreFail();
     }
 
