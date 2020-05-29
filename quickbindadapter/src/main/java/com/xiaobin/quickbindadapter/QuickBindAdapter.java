@@ -1,5 +1,6 @@
 package com.xiaobin.quickbindadapter;
 
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,12 +30,12 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
 
     private final int EMPTY_VIEW_TYPE = -1;
     private final int LOAD_MORE_TYPE = -2;
+    private final int NONE_VIEW_TYPE = -3;
 
-    enum LoadMoreState {
-        LOADING_MORE, LOAD_SUCCESS, LOAD_FAIL, LOAD_COMPLETE
-    }
-
-    private LoadMoreState loadMoreState = LoadMoreState.LOAD_SUCCESS;
+    private BaseLoadView<?> loadView = new DefaultLoadView();
+    private boolean isHasMore = true;
+    //是否允许列表数据不满一页时自动加载更多
+    private boolean canLoadMoreWhenNoFullContent = true;
 
     //数据类型集合
     private List<Class<?>> clazzList = new ArrayList<>();
@@ -52,28 +54,27 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     private OnLoadMoreListener onLoadMoreListener;
     private RecyclerView mRecyclerView;
     private GridLayoutManager.SpanSizeLookup spanSizeLookup;
-    private boolean isHasMore = true;
-    private String loadMoreText = "努力加载中...";
-    private String loadFailText = "加载失败了!";
-    private String loadCompleteText = "没有更多数据";
-    private String loadSuccessText = "加载成功";
 
     //空数据占位图
     private View emptyView;
-    private boolean showEmptyView;
 
     //*******************************用于外部调用的方法******************************
 
-    public void setLoadMoreText(String loadMoreText) {
-        this.loadMoreText = loadMoreText;
+    /**
+     * 设置自定义的加载更多View
+     * 内置默认的为: DefaultLoadView
+     *
+     * @param loadView 加载更多View，需要继承自BaseLoadView，目前仅可实现一些简单的功能
+     */
+    public void setLoadView(BaseLoadView<?> loadView) {
+        this.loadView = loadView;
     }
 
-    public void setLoadFailText(String loadFailText) {
-        this.loadFailText = loadFailText;
-    }
-
-    public void setLoadCompleteText(String loadCompleteText) {
-        this.loadCompleteText = loadCompleteText;
+    /**
+     * 是否允许列表数据不满一页时，自动加载更多
+     */
+    public void setCanLoadMoreWhenNoFullContent(boolean canLoadMore) {
+        this.canLoadMoreWhenNoFullContent = canLoadMore;
     }
 
     public void setSpanSizeLookup(GridLayoutManager.SpanSizeLookup spanLook) {
@@ -143,20 +144,26 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     public void loadMoreSuccess() {
+        if (getDataCount() == 0 || loadView == null) return;
         isHasMore = true;
-        loadMoreState = LoadMoreState.LOAD_SUCCESS;
-        notifyItemChanged(getItemCount() - 1);
+        loadView.isLoadMoreSuccess();
     }
 
+    /**
+     * 加载更多完成，没有更多数据了
+     */
     public void loadMoreComplete() {
+        if (getDataCount() == 0 || loadView == null) return;
         isHasMore = false;
-        loadMoreState = LoadMoreState.LOAD_COMPLETE;
-        notifyItemChanged(getItemCount() - 1);
+        loadView.isLoadMoreEnd();
     }
 
+    /**
+     * 加载更多失败了
+     */
     public void loadMoreFail() {
-        loadMoreState = LoadMoreState.LOAD_FAIL;
-        notifyItemChanged(getItemCount() - 1);
+        if (getDataCount() == 0 || loadView == null) return;
+        loadView.isLoadMoreFail();
     }
 
     /**
@@ -204,17 +211,17 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
                     }
                     if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
                         if (getDataCount() == 0) {
-                            loadMoreState = LoadMoreState.LOAD_COMPLETE;
-                            notifyItemChanged(lastItemIndex);
+                            if (loadView != null) {
+                                loadView.isLoadMoreEnd();
+                            }
                             return;
                         }
                         //触发加载更多
-                        if (loadMoreState != LoadMoreState.LOADING_MORE) {
-                            if (onLoadMoreListener != null && isHasMore) {
-                                loadMoreState = LoadMoreState.LOADING_MORE;
-                                notifyItemChanged(lastItemIndex);
+                        if (onLoadMoreListener != null && isHasMore && loadView != null) {
+                            if (loadView.getLoadMoreState() != BaseLoadView.LoadMoreState.LOADING_MORE) {
                                 onLoadMoreListener.onLoadMore();
                             }
+                            loadView.isLoadMore();
                         }
                     }
                 }
@@ -246,15 +253,6 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     /**
-     * 是否显示的占位图
-     *
-     * @return 是否显示占位图
-     */
-    public boolean isShowEmptyView() {
-        return showEmptyView;
-    }
-
-    /**
      * 设置空数据占位图
      *
      * @param view 站位视图
@@ -282,6 +280,39 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     }
 
     /**
+     * 检查RV是否可以滑动，如果不可滑动(视为数据没有占满一页的情况)，并且开启了不满一页也可触发加载更多
+     * 则触发加载更多回调
+     */
+    private void checkScrollState() {
+        if (mRecyclerView != null
+                && getDataCount() > 0
+                && canLoadMoreWhenNoFullContent
+                && onLoadMoreListener != null
+                && loadView != null
+        ) {
+            mRecyclerView.post(() -> {
+                if (mRecyclerView.getLayoutManager() == null) return;
+                if (mRecyclerView.getLayoutManager().getChildCount() == getItemCount()) {
+                    if (!mRecyclerView.canScrollHorizontally(1) ||
+                            !mRecyclerView.canScrollHorizontally(-1) ||
+                            !mRecyclerView.canScrollVertically(1) ||
+                            !mRecyclerView.canScrollVertically(-1)) {
+                        //四个方向都不能滑动
+                        if (loadView.getLoadMoreState() != BaseLoadView.LoadMoreState.LOADING_MORE) {
+                            if (getItemViewType(getItemCount() - 1) == LOAD_MORE_TYPE) {
+                                if (onLoadMoreListener != null && isHasMore) {
+                                    loadView.isLoadMore();
+                                    onLoadMoreListener.onLoadMore();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
      * 设置新的数据
      *
      * @param data 全新数据
@@ -300,6 +331,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             isHasMore = true;
         }
         notifyDataSetChanged();
+        checkScrollState();
     }
 
     /**
@@ -315,6 +347,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             isHasMore = true;
         }
         notifyDataSetChanged();
+        checkScrollState();
     }
 
     /**
@@ -338,6 +371,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         this.dataList.add(data);
         notifyItemInserted(dataList.size());
         compatibilityDataSizeChanged(1);
+        checkScrollState();
     }
 
     /**
@@ -387,6 +421,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         this.dataList.addAll(datas);
         notifyItemRangeInserted(lastIndex - 1, datas.size());
         compatibilityDataSizeChanged(datas.size());
+        checkScrollState();
     }
 
     /**
@@ -399,6 +434,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         this.dataList.addAll(datas);
         notifyItemRangeInserted(lastIndex - 1, datas.size());
         compatibilityDataSizeChanged(datas.size());
+        checkScrollState();
     }
 
     /**
@@ -540,7 +576,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      *
      * @param onItemLongClickListener 长按事件实现
      */
-    public QuickBindAdapter setOnItemLongClickListener(OnItemLongClickListener onItemLongClickListener) {
+    public QuickBindAdapter setOnItemLongClickListener(OnItemLongClickListener
+                                                               onItemLongClickListener) {
         this.onItemLongClickListener = onItemLongClickListener;
         return this;
     }
@@ -550,7 +587,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      *
      * @param onItemChildClickListener 子控件点击事件实现
      */
-    public QuickBindAdapter setOnItemChildClickListener(OnItemChildClickListener onItemChildClickListener) {
+    public QuickBindAdapter setOnItemChildClickListener(OnItemChildClickListener
+                                                                onItemChildClickListener) {
         this.onItemChildClickListener = onItemChildClickListener;
         return this;
     }
@@ -560,7 +598,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      *
      * @param onItemChildLongClickListener 子控件长按事件实现
      */
-    public QuickBindAdapter setOnItemChildLongClickListener(OnItemChildLongClickListener onItemChildLongClickListener) {
+    public QuickBindAdapter setOnItemChildLongClickListener(OnItemChildLongClickListener
+                                                                    onItemChildLongClickListener) {
         this.onItemChildLongClickListener = onItemChildLongClickListener;
         return this;
     }
@@ -616,19 +655,20 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             //如果有这个类型，则返回这个类型所在集合的index
             return clazzList.indexOf(itemData.getClass());
         }
-        //如果没有这个类型，则返回NONE_TYPE
-        return EMPTY_VIEW_TYPE;
+        //如果没有这个类型，则返回 NULL_VIEW_TYPE
+        return NONE_VIEW_TYPE;
     }
 
     @NonNull
     @Override
     public BindHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        //根据getItemViewType方法返回的viewType，判断是否是头部
+        //根据getItemViewType方法返回的viewType，判断需要用哪种布局
         if (viewType == LOAD_MORE_TYPE) {
             //加载更多布局
-            return new BindHolder(DataBindingUtil.inflate(
-                    LayoutInflater.from(parent.getContext()),
-                    R.layout.item_loadmore, parent, false));
+            if (loadView != null) {
+                return loadView.get(parent);
+            }
+            return new BindHolder(new View(parent.getContext()));
         } else if (viewType != EMPTY_VIEW_TYPE) {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
@@ -648,28 +688,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public void onBindViewHolder(@NonNull BindHolder holder, int position) {
         if (dataList.size() == 0) return;
         int itemType = holder.getItemViewType();
-        if (itemType == LOAD_MORE_TYPE) {
-            //加载更多
-            holder.getBinding().setVariable(BR.loading, false);
-            switch (loadMoreState) {
-                case LOADING_MORE:
-                    holder.getBinding().setVariable(BR.loading, true);
-                    holder.getBinding().setVariable(BR.text, loadMoreText);
-                    break;
-                case LOAD_SUCCESS:
-                    holder.getBinding().setVariable(BR.text, loadSuccessText);
-                    break;
-                case LOAD_FAIL:
-                    holder.getBinding().setVariable(BR.text, loadFailText);
-                    break;
-                case LOAD_COMPLETE:
-                    holder.getBinding().setVariable(BR.text, loadCompleteText);
-                    break;
-            }
-            return;
-        }
-        if (itemType <= EMPTY_VIEW_TYPE) return;
-        Class clz = clazzList.get(itemType);
+        if (itemType < 0) return;
+        Class<?> clz = clazzList.get(itemType);
         //item点击事件绑定
         if (onItemClickListener != null) {
             holder.itemView.setOnClickListener(view -> {

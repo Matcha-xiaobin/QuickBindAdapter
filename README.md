@@ -6,6 +6,13 @@
 
 ## 更新记录
 
+### v1.1.0.f 修复一些问题, 并且支持简单的自定义加载更多功能;
+
+      使用方式:
+      setLoadView(new DefaultLoadView());
+      DefaultLoadView是内置的默认的, 不需要手动设置。
+      自定义的布局需要继承BaseLoadView去实现。
+
 ### v1.1.0.f 增加简单的加载更多功能;
 
       使用方式：

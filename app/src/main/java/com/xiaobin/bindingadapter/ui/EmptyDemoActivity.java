@@ -40,12 +40,12 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
                 R.layout.layout_empty, binding.recyclerView, false);
         layoutEmptyBinding.setTitle("暂无数据");
         layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
 
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         bindAdapter = QuickBindAdapter.Create()
                 .bind(ChatListBean.class, R.layout.item_linear, BR.data)
                 .setEmptyView(layoutEmptyBinding.getRoot());//必须在rv.setLayoutManager之后调用
