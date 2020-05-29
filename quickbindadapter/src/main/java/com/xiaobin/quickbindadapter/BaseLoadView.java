@@ -42,25 +42,25 @@ public abstract class BaseLoadView<T extends ViewDataBinding> {
     }
 
     public void isLoadMore() {
-        if (loadMoreState == LoadMoreState.LOADING_MORE) return;
+        if (loadMoreState == LoadMoreState.LOADING_MORE || loadView == null) return;
         loadMoreState = LoadMoreState.LOADING_MORE;
         onLoadMore(loadView);
     }
 
     public void isLoadMoreEnd() {
-        if (loadMoreState == LoadMoreState.LOAD_COMPLETE) return;
+        if (loadMoreState == LoadMoreState.LOAD_COMPLETE || loadView == null) return;
         loadMoreState = LoadMoreState.LOAD_COMPLETE;
         onLoadEnd(loadView);
     }
 
     public void isLoadMoreSuccess() {
-        if (loadMoreState == LoadMoreState.LOAD_SUCCESS) return;
+        if (loadMoreState == LoadMoreState.LOAD_SUCCESS || loadView == null) return;
         loadMoreState = LoadMoreState.LOAD_SUCCESS;
         onLoadSuccess(loadView);
     }
 
     public void isLoadMoreFail() {
-        if (loadMoreState == LoadMoreState.LOAD_FAIL) return;
+        if (loadMoreState == LoadMoreState.LOAD_FAIL || loadView == null) return;
         loadMoreState = LoadMoreState.LOAD_FAIL;
         onLoadFail(loadView);
     }
