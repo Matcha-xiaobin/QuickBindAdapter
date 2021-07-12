@@ -3,13 +3,13 @@ apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.Matchas-xiaobin'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 29
-        versionCode 10
-        versionName "1.1.1"
+        targetSdkVersion 30
+        versionCode 11
+        versionName "1.1.2"
     }
 
     compileOptions {
@@ -29,6 +29,5 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    compileOnly 'androidx.recyclerview:recyclerview:1.2.1'
 }
