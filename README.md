@@ -6,6 +6,8 @@
 
 ## 更新记录
 
+### v1.2.0 去除一些无用的配置代码;
+      
 ### v1.1.3.a 修复一些问题, 并且支持简单的自定义加载更多功能;
 
       使用方式:
@@ -34,7 +36,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.1.0.f'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:v1.2.0'
     }
 
 ### 在代码中使用：
