@@ -3,23 +3,6 @@
 [![](https://jitpack.io/v/Matchas-xiaobin/QuickBindAdapter.svg)](https://jitpack.io/#Matchas-xiaobin/QuickBindAdapter)
 
 使用Databinding简单快速实现RecyclerView多布局Adapter。只需要用这一个Adapter就够了。
-
-## 更新记录
-
-### v1.2.0 去除一些无用的配置代码;
-      
-### v1.1.3.a 修复一些问题, 并且支持简单的自定义加载更多功能;
-
-      使用方式:
-      setLoadView(new DefaultLoadView());
-      DefaultLoadView是内置的默认的, 不需要手动设置。
-      自定义的布局需要继承BaseLoadView去实现。
-
-### v1.1.0.f 增加简单的加载更多功能;
-
-      使用方式：
-      setOnLoadMoreListener(@NonNull OnLoadMoreListener onLoadMoreListener,
-                                            @NonNull RecyclerView recyclerView);
                                             
 ## 在项目中引用
 
@@ -205,4 +188,8 @@
       修改 刷新完成，没有更多数据了 文字:
       adapter.setLoadCompleteText("");
       
-      暂未加入 自定义加载更多 的布局功能, 后续在加
+      自定义加载更多 的布局
+      使用方式:
+      setLoadView(new DefaultLoadView());
+      DefaultLoadView是内置的默认的, 不需要手动设置。
+      自定义的布局需要继承BaseLoadView去实现。
