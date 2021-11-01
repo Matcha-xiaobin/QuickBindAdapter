@@ -485,9 +485,9 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public QuickBindAdapter bind(Class<?> clazz, @LayoutRes int layoutId, int bindVariableId) {
         if (!clazzList.contains(clazz)) {
             clazzList.add(clazz);
-            layoutIds.put(clazz, layoutId);
-            variableIds.put(clazz, bindVariableId);
         }
+        layoutIds.put(clazz, layoutId);
+        variableIds.put(clazz, bindVariableId);
         return this;
     }
 
@@ -501,8 +501,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     public QuickBindAdapter bind(Class<?> clazz, @LayoutRes int layoutId) {
         if (!clazzList.contains(clazz)) {
             clazzList.add(clazz);
-            layoutIds.put(clazz, layoutId);
         }
+        layoutIds.put(clazz, layoutId);
         return this;
     }
 
