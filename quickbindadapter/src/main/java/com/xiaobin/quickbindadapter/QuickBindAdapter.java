@@ -10,6 +10,7 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +32,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
     private final int EMPTY_VIEW_TYPE = -1;
     private final int LOAD_MORE_TYPE = -2;
     private final int NONE_VIEW_TYPE = -3;
+
+    private LifecycleOwner lifecycleOwner;
 
     private BaseLoadView<?> loadView = new DefaultLoadView();
     private boolean isHasMore = true;
@@ -249,6 +252,17 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      */
     public static QuickBindAdapter Create() {
         return new QuickBindAdapter();
+    }
+
+    /**
+     * 设置生命周期所有者
+     * 用于特定用途，这个lifecycleOwner会给到每一个item
+     *
+     * @param lifecycleOwner
+     */
+    public QuickBindAdapter setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+        this.lifecycleOwner = lifecycleOwner;
+        return this;
     }
 
     /**
@@ -671,7 +685,7 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         } else if (viewType >= 0) {
             return new BindHolder(DataBindingUtil.inflate(
                     LayoutInflater.from(parent.getContext()),
-                    layoutIds.get(clazzList.get(viewType)), parent, false));
+                    layoutIds.get(clazzList.get(viewType)), parent, false), lifecycleOwner);
         } else if (dataList.size() == 0) {
             ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
