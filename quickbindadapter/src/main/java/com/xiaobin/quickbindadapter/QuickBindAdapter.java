@@ -1,6 +1,5 @@
 package com.xiaobin.quickbindadapter;
 
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +7,6 @@ import android.view.ViewGroup;
 import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -683,9 +681,12 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             }
             return new BindHolder(new View(parent.getContext()));
         } else if (viewType >= 0) {
-            return new BindHolder(DataBindingUtil.inflate(
-                    LayoutInflater.from(parent.getContext()),
-                    layoutIds.get(clazzList.get(viewType)), parent, false), lifecycleOwner);
+            return new BindHolder(
+                    DataBindingUtil.inflate(
+                            LayoutInflater.from(parent.getContext()),
+                            layoutIds.get(clazzList.get(viewType)), parent, false),
+                    lifecycleOwner
+            );
         } else if (dataList.size() == 0) {
             ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
@@ -706,13 +707,15 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
         //item点击事件绑定
         if (onItemClickListener != null) {
             holder.itemView.setOnClickListener(view -> {
-                onItemClickListener.onItemClick(this, view, position);
+                onItemClickListener.onItemClick(this, view,
+                        getItemData(position), position);
             });
         }
         //item长按事件绑定
         if (onItemLongClickListener != null) {
             holder.itemView.setOnLongClickListener(view -> {
-                onItemLongClickListener.onItemLongClick(this, view, position);
+                onItemLongClickListener.onItemLongClick(this, view,
+                        getItemData(position), position);
                 return true;
             });
         }
@@ -722,7 +725,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             for (Integer id : _ids) {
                 holder.itemView.findViewById(id).setOnClickListener(view -> {
                     if (onItemChildClickListener != null) {
-                        onItemChildClickListener.onItemClick(this, view, position);
+                        onItemChildClickListener.onItemClick(this, view,
+                                getItemData(position), position);
                     }
                 });
             }
@@ -733,7 +737,8 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
             for (Integer id : _ids) {
                 holder.itemView.findViewById(id).setOnLongClickListener(view -> {
                     if (onItemChildLongClickListener != null) {
-                        onItemChildLongClickListener.onItemLongClick(this, view, position);
+                        onItemChildLongClickListener.onItemLongClick(this, view,
+                                getItemData(position), position);
                         return true;
                     }
                     return false;
@@ -765,28 +770,28 @@ public class QuickBindAdapter extends RecyclerView.Adapter<BindHolder> {
      * 点击事件
      */
     public interface OnItemClickListener {
-        void onItemClick(QuickBindAdapter adapter, View view, int position);
+        void onItemClick(QuickBindAdapter adapter, View view, Object data, int position);
     }
 
     /**
      * 长按事件
      */
     public interface OnItemLongClickListener {
-        void onItemLongClick(QuickBindAdapter adapter, View view, int position);
+        void onItemLongClick(QuickBindAdapter adapter, View view, Object data, int position);
     }
 
     /**
      * 子控件点击事件
      */
     public interface OnItemChildClickListener {
-        void onItemClick(QuickBindAdapter adapter, View view, int position);
+        void onItemClick(QuickBindAdapter adapter, View view, Object data, int position);
     }
 
     /**
      * 子控件长按事件
      */
     public interface OnItemChildLongClickListener {
-        void onItemLongClick(QuickBindAdapter adapter, View view, int position);
+        void onItemLongClick(QuickBindAdapter adapter, View view, Object data, int position);
     }
 
     /**
