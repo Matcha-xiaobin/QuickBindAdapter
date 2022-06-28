@@ -70,9 +70,16 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     //额外的item样式处理
     var quickBind: QuickBind? = null
 
+    /**
+     * 设置加载更多监听
+     * 如果没有配置自定义的加载更多样式，则初始化默认的
+     */
     var onLoadMoreListener: OnLoadMoreListener? = null
         set(value) {
             field = value
+            if (loadView == null) {
+                loadView = defaultLoadItem
+            }
             setupScrollListener()
         }
     var mRecyclerView: RecyclerView? = null
