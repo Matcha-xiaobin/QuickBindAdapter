@@ -1,23 +1,13 @@
-package com.xiaobin.quickbindadapter;
+package com.xiaobin.quickbindadapter
 
-import androidx.annotation.NonNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.ArrayList
 
 /**
  * @author 小斌
  * @data 2019/7/10
- **/
-public class ItemData extends ArrayList<Object> {
-    public ItemData() {
-    }
-
-    public ItemData(int initialCapacity) {
-        super(initialCapacity);
-    }
-
-    public ItemData(@NonNull Collection<?> c) {
-        super(c);
-    }
+ */
+class ItemData : ArrayList<Any?> {
+    constructor() {}
+    constructor(initialCapacity: Int) : super(initialCapacity) {}
+    constructor(c: Collection<*>) : super(c) {}
 }

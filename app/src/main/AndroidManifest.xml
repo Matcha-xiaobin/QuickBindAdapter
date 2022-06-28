@@ -9,7 +9,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.StartActivity">
+        <activity
+            android:name=".ui.StartActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -21,6 +23,8 @@
         <activity android:name=".ui.grid.GridMultiActivity" />
         <activity android:name=".ui.grid.GridSingleActivity" />
         <activity android:name=".ui.EmptyDemoActivity" />
+        <activity android:name=".ui.staggered.StaggeredSingleActivity" />
+        <activity android:name=".ui.staggered.StaggeredMultiActivity" />
     </application>
 
 </manifest>

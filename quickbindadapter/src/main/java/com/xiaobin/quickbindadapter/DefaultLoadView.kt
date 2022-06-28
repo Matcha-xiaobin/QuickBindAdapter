@@ -1,89 +1,76 @@
-package com.xiaobin.quickbindadapter;
+package com.xiaobin.quickbindadapter
 
-import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.os.Build;
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.os.Build
+import androidx.annotation.ColorInt
+import com.xiaobin.quickbindadapter.databinding.ItemLoadmoreBinding
 
-import androidx.annotation.ColorInt;
+class DefaultLoadView : BaseLoadView<ItemLoadmoreBinding>(R.layout.item_loadmore) {
 
-import com.xiaobin.quickbindadapter.databinding.ItemLoadmoreBinding;
+    private var loadMoreText = "努力加载中..."
+    private var loadFailText = "加载失败了!"
+    private var loadCompleteText = "没有更多数据"
+    private var loadSuccessText = "加载成功"
 
-public class DefaultLoadView extends BaseLoadView<ItemLoadmoreBinding> {
-
-    private String loadMoreText = "努力加载中...";
-    private String loadFailText = "加载失败了!";
-    private String loadCompleteText = "没有更多数据";
-    private String loadSuccessText = "加载成功";
-    private @ColorInt
-    int textColor = Color.LTGRAY;
-
-    public void setTextColor(@ColorInt int textColor) {
-        this.textColor = textColor;
+    @ColorInt
+    private var textColor = Color.LTGRAY
+    fun setTextColor(@ColorInt textColor: Int) {
+        this.textColor = textColor
     }
 
-    public void setLoadMoreText(String loadMoreText) {
-        this.loadMoreText = loadMoreText == null ? "" : loadMoreText;
+    fun setLoadMoreText(loadMoreText: String?) {
+        this.loadMoreText = loadMoreText ?: ""
     }
 
-    public void setLoadFailText(String loadFailText) {
-        this.loadFailText = loadFailText == null ? "" : loadFailText;
+    fun setLoadFailText(loadFailText: String?) {
+        this.loadFailText = loadFailText ?: ""
     }
 
-    public void setLoadCompleteText(String loadCompleteText) {
-        this.loadCompleteText = loadCompleteText == null ? "" : loadCompleteText;
+    fun setLoadCompleteText(loadCompleteText: String?) {
+        this.loadCompleteText = loadCompleteText ?: ""
     }
 
-    public void setLoadSuccessText(String loadSuccessText) {
-        this.loadSuccessText = loadSuccessText == null ? "" : loadSuccessText;
+    fun setLoadSuccessText(loadSuccessText: String?) {
+        this.loadSuccessText = loadSuccessText ?: ""
     }
 
-    @Override
-    protected int getLayoutId() {
-        return R.layout.item_loadmore;
-    }
-
-    @Override
-    protected void initView(ItemLoadmoreBinding loadView) {
-    }
-
-    @Override
-    protected void onLoadMore(ItemLoadmoreBinding loadView) {
-        loadView.setLoading(true);
-        loadView.setText(loadMoreText);
-        loadView.tvText.setTextColor(textColor);
+    override fun onLoadMore(loadView: ItemLoadmoreBinding) {
+        loadView.loading = true
+        loadView.text = loadMoreText
+        loadView.tvText.setTextColor(textColor)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            loadView.progress.setProgressTintList(ColorStateList.valueOf(textColor));
+            loadView.progress.progressTintList = ColorStateList.valueOf(textColor)
         }
     }
 
-    @Override
-    protected void onLoadEnd(ItemLoadmoreBinding loadView) {
-        loadView.setLoading(false);
-        loadView.setText(loadCompleteText);
-        loadView.tvText.setTextColor(textColor);
+    override fun onLoadEnd(loadView: ItemLoadmoreBinding) {
+        loadView.loading = false
+        loadView.text = loadCompleteText
+        loadView.tvText.setTextColor(textColor)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            loadView.progress.setProgressTintList(ColorStateList.valueOf(textColor));
+            loadView.progress.progressTintList = ColorStateList.valueOf(textColor)
         }
     }
 
-    @Override
-    protected void onLoadSuccess(ItemLoadmoreBinding loadView) {
-        loadView.setLoading(false);
-        loadView.setText(loadSuccessText);
-        loadView.tvText.setTextColor(textColor);
+    override fun onLoadSuccess(loadView: ItemLoadmoreBinding) {
+        loadView.loading = false
+        loadView.text = loadSuccessText
+        loadView.tvText.setTextColor(textColor)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            loadView.progress.setProgressTintList(ColorStateList.valueOf(textColor));
+            loadView.progress.progressTintList = ColorStateList.valueOf(textColor)
         }
     }
 
-    @Override
-    protected void onLoadFail(ItemLoadmoreBinding loadView) {
-        loadView.setLoading(false);
-        loadView.setText(loadFailText);
-        loadView.tvText.setTextColor(textColor);
+    override fun onLoadFail(loadView: ItemLoadmoreBinding) {
+        loadView.loading = false
+        loadView.text = loadFailText
+        loadView.tvText.setTextColor(textColor)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            loadView.progress.setProgressTintList(ColorStateList.valueOf(textColor));
+            loadView.progress.progressTintList = ColorStateList.valueOf(textColor)
         }
     }
 
+    override fun initView(loadView: ItemLoadmoreBinding?) {
+    }
 }

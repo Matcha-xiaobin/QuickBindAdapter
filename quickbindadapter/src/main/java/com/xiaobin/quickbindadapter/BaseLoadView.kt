@@ -1,90 +1,77 @@
-package com.xiaobin.quickbindadapter;
+package com.xiaobin.quickbindadapter
 
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.LifecycleOwner
 
-import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
+abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
 
-public abstract class BaseLoadView<T extends ViewDataBinding> {
-
-    enum LoadMoreState {
+    enum class LoadMoreState {
         LOADING_MORE, LOAD_SUCCESS, LOAD_FAIL, LOAD_COMPLETE
     }
 
     //加载更多
-    private LoadMoreState loadMoreState = LoadMoreState.LOAD_SUCCESS;
+    var loadMoreState = LoadMoreState.LOAD_SUCCESS
+        private set
 
-    private T loadView;
-    private BindHolder bindHolder;
+    protected var loadView: T? = null
 
-    public BindHolder get(ViewGroup parent) {
-        createView(parent);
-        if (bindHolder != null)
-            return bindHolder;
-        else
-            return null;
-    }
-
-    public LoadMoreState getLoadMoreState() {
-        return loadMoreState;
-    }
-
-    protected abstract int getLayoutId();
-
-    public void createView(ViewGroup parent) {
+    fun createViewHolder(parent: ViewGroup, lifecycleOwner: LifecycleOwner? = null): BindHolder {
         loadView = DataBindingUtil.inflate(
-                LayoutInflater.from(parent.getContext()),
-                getLayoutId(),
-                parent, false);
-        bindHolder = new BindHolder(loadView.getRoot());
-        initView(loadView);
-        isLoadMoreEnd();
+            LayoutInflater.from(parent.context),
+            layoutId,
+            parent, false
+        )
+        initView(loadView)
+        isLoadMoreEnd()
+        return BindHolder(loadView!!, lifecycleOwner)
     }
 
-    public void isLoadMore() {
-        if (loadMoreState == LoadMoreState.LOADING_MORE || loadView == null) return;
-        loadMoreState = LoadMoreState.LOADING_MORE;
-        onLoadMore(loadView);
+    fun isLoadMore() {
+        if (loadMoreState == LoadMoreState.LOADING_MORE || loadView == null) return
+        loadMoreState = LoadMoreState.LOADING_MORE
+        onLoadMore(loadView!!)
     }
 
-    public void isLoadMoreEnd() {
-        if (loadMoreState == LoadMoreState.LOAD_COMPLETE || loadView == null) return;
-        loadMoreState = LoadMoreState.LOAD_COMPLETE;
-        onLoadEnd(loadView);
+    fun isLoadMoreEnd() {
+        if (loadMoreState == LoadMoreState.LOAD_COMPLETE || loadView == null) return
+        loadMoreState = LoadMoreState.LOAD_COMPLETE
+        onLoadEnd(loadView!!)
     }
 
-    public void isLoadMoreSuccess() {
-        if (loadMoreState == LoadMoreState.LOAD_SUCCESS || loadView == null) return;
-        loadMoreState = LoadMoreState.LOAD_SUCCESS;
-        onLoadSuccess(loadView);
+    fun isLoadMoreSuccess() {
+        if (loadMoreState == LoadMoreState.LOAD_SUCCESS || loadView == null) return
+        loadMoreState = LoadMoreState.LOAD_SUCCESS
+        onLoadSuccess(loadView!!)
     }
 
-    public void isLoadMoreFail() {
-        if (loadMoreState == LoadMoreState.LOAD_FAIL || loadView == null) return;
-        loadMoreState = LoadMoreState.LOAD_FAIL;
-        onLoadFail(loadView);
+    fun isLoadMoreFail() {
+        if (loadMoreState == LoadMoreState.LOAD_FAIL || loadView == null) return
+        loadMoreState = LoadMoreState.LOAD_FAIL
+        onLoadFail(loadView!!)
     }
 
-    protected abstract void initView(T loadView);
+    protected abstract fun initView(loadView: T?)
 
     /**
      * 正在加载更多
      */
-    protected abstract void onLoadMore(T loadView);
+    protected abstract fun onLoadMore(loadView: T)
 
     /**
      * 加载完成，没有更多
      */
-    protected abstract void onLoadEnd(T loadView);
+    protected abstract fun onLoadEnd(loadView: T)
 
     /**
      * 加载成功
      */
-    protected abstract void onLoadSuccess(T loadView);
+    protected abstract fun onLoadSuccess(loadView: T)
 
     /**
      * 加载失败
      */
-    protected abstract void onLoadFail(T loadView);
+    protected abstract fun onLoadFail(loadView: T)
 }

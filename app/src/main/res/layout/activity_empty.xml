@@ -18,28 +18,65 @@
             android:layout_height="match_parent" />
 
         <TextView
-            android:layout_width="40dp"
+            android:id="@+id/tv_add"
+            android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_margin="12dp"
             android:background="@drawable/shap_button"
             android:gravity="center"
-            android:onClick="add"
-            android:text="加"
+            android:onClick="addData"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="新增数据"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tv_reduce" />
 
         <TextView
-            android:layout_width="40dp"
+            android:id="@+id/tv_reduce"
+            android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginEnd="60dp"
-            android:layout_marginRight="60dp"
-            android:layout_marginBottom="12dp"
+            android:layout_margin="12dp"
             android:background="@drawable/shap_button"
             android:gravity="center"
-            android:onClick="reduce"
-            android:text="减"
+            android:onClick="reduceData"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="减少数据"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toStartOf="@id/tv_add"
+            app:layout_constraintStart_toEndOf="@id/tv_err" />
+
+        <TextView
+            android:id="@+id/tv_loading"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/shap_button"
+            android:gravity="center"
+            android:onClick="loadPage"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="等待页面"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tv_err"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_err"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/shap_button"
+            android:gravity="center"
+            android:onClick="errPage"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="错误页面"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tv_reduce"
+            app:layout_constraintStart_toEndOf="@id/tv_loading" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

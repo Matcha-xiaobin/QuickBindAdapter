@@ -48,11 +48,12 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
         adapter.addClickListener(String.class, R.id.tv_name);
 
+        //务必先调用setLayoutManager
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        binding.recyclerView.setAdapter(adapter);
+        binding.recyclerView.setAdapter(adapter);
         adapter.setOnLoadMoreListener(() -> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
-            new Handler().postDelayed(() -> {
+            binding.getRoot().postDelayed(() -> {
                 ItemData dataList = new ItemData();
                 ChatListBean item;
                 for (int i = 0; i < 15; i++) {
@@ -77,11 +78,11 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     dataList.add(item);
                 }
                 adapter.addDatas(dataList);
-                adapter.loadMoreComplete();
+                adapter.loadMoreEnd();
             }, 3000);
-        }, binding.recyclerView);
+        });
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
-        adapter.setQuickCovert((binding, itemData, position) -> {
+        adapter.setQuickBind((binding, itemData, position) -> {
             //如果是多布局，则在这里需要判断布局类型，参考：
             if (binding instanceof ItemLinearBinding) {
                 // R.layout.item_linear 类型布局，在这里面写这个布局的逻辑代码
@@ -97,31 +98,29 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
             }
         });
         //绑定item的点击事件
-        adapter.setOnItemClickListener((adapter1, view, position) -> {
+        adapter.setOnItemClickListener((adapter1, view, data, position) -> {
             //item点击事件
-            Object itemData = adapter1.getItemData(position);
-            if (itemData instanceof ChatListBean) {
-                ChatListBean data = (ChatListBean) itemData;
-                Toast.makeText(this, "点击的是 " + data.getId() + " 消息条", Toast.LENGTH_SHORT).show();
-            } else if (itemData instanceof String) {
-                Toast.makeText(this, "点击的是 " + itemData + " 分组条", Toast.LENGTH_SHORT).show();
+            if (data instanceof ChatListBean) {
+                ChatListBean mData = (ChatListBean) data;
+                Toast.makeText(this, "点击的是 " + mData.getId() + " 消息条", Toast.LENGTH_SHORT).show();
+            } else if (data instanceof String) {
+                Toast.makeText(this, "点击的是 " + data + " 分组条", Toast.LENGTH_SHORT).show();
             }
         });
-        adapter.setOnItemChildClickListener((adapter1, view, position) -> {
+        adapter.setOnItemChildClickListener((adapter1, view, data, position) -> {
             //item上子控件 点击事件
-            Object itemData = adapter1.getItemData(position);
             int viewId = view.getId();
-            if (itemData instanceof ChatListBean) {
-                ChatListBean data = (ChatListBean) itemData;
+            if (data instanceof ChatListBean) {
+                ChatListBean mData = (ChatListBean) data;
                 if (viewId == R.id.iv_image) {
-                    Toast.makeText(this, "点击的是 " + data.getId() + " 消息条的 头像", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "点击的是 " + mData.getId() + " 消息条的 头像", Toast.LENGTH_SHORT).show();
                 } else if (viewId == R.id.tv_name) {
-                    Toast.makeText(this, "点击的是 " + data.getId() + " 消息条的 名字", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "点击的是 " + mData.getId() + " 消息条的 名字", Toast.LENGTH_SHORT).show();
                 } else if (viewId == R.id.tv_message) {
-                    Toast.makeText(this, "点击的是 " + data.getId() + " 消息条的 消息", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "点击的是 " + mData.getId() + " 消息条的 消息", Toast.LENGTH_SHORT).show();
                 }
-            } else if (itemData instanceof String) {
-                Toast.makeText(this, "点击的是 " + itemData + " 分组条的 TextView", Toast.LENGTH_SHORT).show();
+            } else if (data instanceof String) {
+                Toast.makeText(this, "点击的是 " + data + " 分组条的 TextView", Toast.LENGTH_SHORT).show();
             }
 
         });

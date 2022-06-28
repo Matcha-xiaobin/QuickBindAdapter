@@ -1,23 +1,27 @@
-apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+//apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.Matchas-xiaobin'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 32
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 30
-        versionCode 11
-        versionName "2.0.1"
+        targetSdkVersion 32
+        versionCode 1
+        versionName "2.1.0"
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding true
     }
     buildTypes {
         release {
@@ -30,4 +34,6 @@ android {
 
 dependencies {
     compileOnly 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation "androidx.core:core-ktx:1.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

@@ -44,24 +44,23 @@ public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
         //添加子控件点击事件
         adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
-
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(adapter);
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
-        adapter.setQuickCovert((binding, itemData, position) -> {
+        adapter.setQuickBind((binding, itemData, position) -> {
             // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
             ItemLinearBinding mBinding = (ItemLinearBinding) binding;
             mBinding.tvName.setTextColor(Color.RED);
         });
         //绑定item的点击事件
-        adapter.setOnItemClickListener((adapter1, view, position) -> {
+        adapter.setOnItemClickListener((adapter1, view, data, position) -> {
             //item点击事件
-            ChatListBean itemData = (ChatListBean) adapter1.getItemData(position);
+            ChatListBean itemData = (ChatListBean) data;
             Toast.makeText(this, "ID: " + itemData.getId(), Toast.LENGTH_SHORT).show();
         });
-        adapter.setOnItemChildClickListener((adapter1, view, position) -> {
+        adapter.setOnItemChildClickListener((adapter1, view, data, position) -> {
             //item上子控件 点击事件
-            ChatListBean itemData = (ChatListBean) adapter1.getItemData(position);
+            ChatListBean itemData = (ChatListBean) data;
             int viewId = view.getId();
             if (viewId == R.id.iv_image) {
                 Toast.makeText(this, "点击的是ID: " + itemData.getId() + " 的 头像", Toast.LENGTH_SHORT).show();

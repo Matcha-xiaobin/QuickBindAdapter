@@ -1,25 +1,27 @@
-package com.xiaobin.bindingadapter.ui.grid;
+package com.xiaobin.bindingadapter.ui.staggered;
 
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.xiaobin.bindingadapter.BR;
 import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityBaseBinding;
 import com.xiaobin.bindingadapter.databinding.ItemGridBinding;
+import com.xiaobin.bindingadapter.databinding.ItemStaggeredBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
 import com.xiaobin.quickbindadapter.ItemData;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 /**
- * GridLayoutManager 示例
+ * StaggeredLayoutManager 示例
  * @author xiaobin
  */
-public class GridSingleActivity extends BaseActivity<ActivityBaseBinding> {
+public class StaggeredSingleActivity extends BaseActivity<ActivityBaseBinding> {
 
     @Override
     protected boolean showBackButton() {
@@ -33,23 +35,23 @@ public class GridSingleActivity extends BaseActivity<ActivityBaseBinding> {
 
     @Override
     protected String getActionTitle() {
-        return "GridLayout单布局";
+        return "StaggeredGridLayout单布局";
     }
 
     @Override
     protected void initView(Bundle savedInstanceState) {
         QuickBindAdapter adapter = new QuickBindAdapter();
         //绑定数据类型和布局
-        adapter.bind(ChatListBean.class, R.layout.item_grid, BR.data);
+        adapter.bind(ChatListBean.class, R.layout.item_staggered, BR.data);
         //添加子控件点击事件
         adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
 
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        binding.recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
         binding.recyclerView.setAdapter(adapter);
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
         adapter.setQuickBind((binding, itemData, position) -> {
             // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
-            ItemGridBinding mBinding = (ItemGridBinding) binding;
+            ItemStaggeredBinding mBinding = (ItemStaggeredBinding) binding;
             mBinding.tvName.setTextColor(Color.RED);
         });
         //绑定item的点击事件
