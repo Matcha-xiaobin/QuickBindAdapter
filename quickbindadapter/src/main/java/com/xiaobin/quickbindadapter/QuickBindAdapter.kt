@@ -19,7 +19,7 @@ import kotlin.math.abs
  * @author 小斌
  * @data 2019/7/10
  */
-class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter<BindHolder>() {
+open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter<BindHolder>() {
 
     private val TAG = "QuickBindAdapter"
     private val EMPTY_VIEW_TYPE = -1
