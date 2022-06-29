@@ -37,7 +37,6 @@
         > setLoadView(BaseLoadView) -> setLoadMoreItemView(BaseLoadView)
         > setCanLoadMoreWhenNoFullContent(boolean) -> setLoadMoreWhenItemsNoFullScreen(boolean)
         > setSpanSizeLookup(SpanSizeLookup) 已移除，如有需要，在调用setAdapter之前给layoutManager设置spanSizeLookup即可，如有需要，可以在重新设置spanSizeLookup后调用adapter.refreshSpanSizeLookup()刷新
-        > setSpanSizeLookup(SpanSizeLookup) 已移除，如有需要，在调用setAdapter之前给layoutManager设置spanSizeLookup即可，如有需要，可以在重新设置spanSizeLookup后调用adapter.refreshSpanSizeLookup()刷新
     更多请在demo中查看
 
     注意：以下文档按照最新的版本编写
@@ -52,8 +51,21 @@
     adapter.setxxx()
     ...
     
-    或者链式初始化
-    QuickBindAdapter binAdapter = QuickBindAdapter.Create().bind().setxxx().setxxx();
+    Kotlin:
+    1.委托
+    private val adapter: QuickBindAdapter by lazy {
+      QuickBindAdapter().apply{
+        bind(,,)
+      addClicks(,,)
+      ...
+      }
+    }
+    2.正常使用
+    val adapter = QuickBinAdapter().apply{
+      bind(,,)
+      addClicks(,,)
+      ...
+    }
 
 ### 绑定数据类型和布局  有几种布局，就绑定几次，每一种布局要对应一种数据类型
 
