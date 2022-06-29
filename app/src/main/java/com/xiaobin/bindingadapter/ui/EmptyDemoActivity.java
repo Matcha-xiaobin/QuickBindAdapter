@@ -1,18 +1,17 @@
 package com.xiaobin.bindingadapter.ui;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 
-import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.xiaobin.bindingadapter.BR;
 import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityEmptyBinding;
-import com.xiaobin.bindingadapter.databinding.LayoutEmptyBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
+import com.xiaobin.quickbindadapter.DefaultPlaceholder;
+import com.xiaobin.quickbindadapter.PlaceholderAction;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 /**
@@ -40,26 +39,35 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        bindAdapter = new QuickBindAdapter(this);
+        bindAdapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
+        bindAdapter.setEmptyView(new DefaultPlaceholder(this));//设置默认的无数据时占位布局
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        LayoutEmptyBinding layoutEmptyBinding = DataBindingUtil.inflate(LayoutInflater.from(this),
-                R.layout.layout_empty, binding.recyclerView, false);
-        layoutEmptyBinding.setTitle("暂无数据");
-        layoutEmptyBinding.setSubTitle("点击'加'按钮添加数据");
-
-        bindAdapter = QuickBindAdapter.Create()
-                .bind(ChatListBean.class, R.layout.item_linear, BR.data)
-                .setEmptyView(layoutEmptyBinding.getRoot());//必须在rv.setLayoutManager之后调用
         binding.recyclerView.setAdapter(bindAdapter);
     }
 
-    public void add(View view) {
+    public void addData(View view) {
         ChatListBean item = new ChatListBean();
         item.setId("嘿咻");
-        bindAdapter.addData(item);
+        bindAdapter.addData(item, true);
     }
 
-    public void reduce(View view) {
+    public void reduceData(View view) {
         if (bindAdapter.getItemCount() > 0)
             bindAdapter.remove(bindAdapter.getItemCount() - 1);
+    }
+
+    public void loadPage(View view) {
+        if (bindAdapter.getEmptyView() != null) {
+            bindAdapter.removeAll();
+            bindAdapter.getEmptyView().setPlaceholderAction(PlaceholderAction.ShowLoadingPage.INSTANCE);
+        }
+    }
+
+    public void errPage(View view) {
+        if (bindAdapter.getEmptyView() != null) {
+            bindAdapter.removeAll();
+            bindAdapter.getEmptyView().setPlaceholderAction(PlaceholderAction.ShowErrPage.INSTANCE);
+        }
     }
 }

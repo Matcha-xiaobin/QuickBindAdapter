@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/activity_empty.xml" value="0.5" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/item_grid.xml" value="0.2578125" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/item_head.xml" value="0.33697916666666666" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/item_linear.xml" value="0.2578125" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/item_staggered.xml" value="0.2578125" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/item_staggered2.xml" value="0.2578125" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/item_staggered_head.xml" value="0.2578125" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/app/src/main/res/layout/layout_empty.xml" value="0.275" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/quickbindadapter/src/main/res/layout/item_loadmore.xml" value="0.21666666666666667" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/quickbindadapter/src/main/res/layout/layout_page_empty.xml" value="0.275" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/quickbindadapter/src/main/res/layout/layout_page_error.xml" value="0.2084819659135949" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/quickbindadapter/src/main/res/layout/layout_page_loading.xml" value="0.275" />
+        <entry key="..\:/Android/Android Studio Project/QuickBindAdapter/quickbindadapter/src/main/res/layout/layout_placeholder.xml" value="0.27395833333333336" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
