@@ -63,7 +63,8 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
     /**
      * 获得全部item数据，不包含底部的加载更多item
      */
-    private var listData: ItemData = ItemData()
+    var listData: ItemData = ItemData()
+        private set
 
     /**
      * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
