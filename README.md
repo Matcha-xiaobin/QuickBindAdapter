@@ -3,6 +3,8 @@
 [![](https://jitpack.io/v/Matchas-xiaobin/QuickBindAdapter.svg)](https://jitpack.io/#Matchas-xiaobin/QuickBindAdapter)
 
 使用Databinding简单快速实现RecyclerView多布局Adapter。只需要用这一个Adapter就够了。
+
+[全新3.0版本点这里, 升级版本必看！](https://github.com/Matchas-xiaobin/QuickBindAdapter/blob/kotlin_version/README.md)
                                             
 ## 在项目中引用
 
@@ -19,7 +21,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:1.2.1'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:2.0.1'
     }
 
 ### 在代码中使用：
