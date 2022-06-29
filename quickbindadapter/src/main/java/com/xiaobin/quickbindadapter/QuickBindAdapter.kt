@@ -351,26 +351,26 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
     /**
      * item事件
      */
-    var onItemClickListener: OnClickListener? = null
-    var onItemLongClickListener: OnLongClickListener? = null
+    var onItemClickListener: OnItemClickListener? = null
+    var onItemLongClickListener: OnItemLongClickListener? = null
 
     /**
      * 子控件事件
      */
-    var onItemChildClickListener: OnClickListener? = null
-    var onItemChildLongClickListener: OnLongClickListener? = null
+    var onItemChildClickListener: OnItemClickListener? = null
+    var onItemChildLongClickListener: OnItemLongClickListener? = null
 
     /**
      * 点击事件
      */
-    interface OnClickListener {
+    interface OnItemClickListener {
         fun onClick(adapter: QuickBindAdapter, view: View, data: Any, position: Int)
     }
 
     /**
      * 长按事件
      */
-    interface OnLongClickListener {
+    interface OnItemLongClickListener {
         fun onLongClick(
             adapter: QuickBindAdapter,
             view: View,
