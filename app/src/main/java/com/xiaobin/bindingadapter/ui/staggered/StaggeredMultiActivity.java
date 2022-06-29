@@ -42,7 +42,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        QuickBindAdapter adapter = new QuickBindAdapter();
+        QuickBindAdapter adapter = new QuickBindAdapter(this);
         //绑定数据类型和布局
         adapter.bind(ChatListBean.class, R.layout.item_staggered, BR.data);
         adapter.bind(ChatListBean2.class, R.layout.item_staggered2, BR.data);
@@ -66,9 +66,13 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.setOnLoadMoreListener(() -> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
             binding.getRoot().postDelayed(() -> {
-                adapter.addDatas(createSomeData());
-                adapter.loadMoreSuccessAndNoMore();
-            }, 3000);
+                adapter.addDatas(createSomeData(), true);
+                if (adapter.getItemCount() > 50) {
+                    adapter.loadMoreSuccessAndNoMore();
+                } else {
+                    adapter.loadMoreSuccess();
+                }
+            }, 1500);
         });
 
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里

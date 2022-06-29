@@ -1,5 +1,6 @@
 package com.xiaobin.quickbindadapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,7 @@ import kotlin.math.abs
  * @author 小斌
  * @data 2019/7/10
  */
-class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
+class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter<BindHolder>() {
 
     private val TAG = "QuickBindAdapter"
     private val EMPTY_VIEW_TYPE = -1
@@ -41,7 +42,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 加载更多item样式
      */
-    var loadView: BaseLoadView<*>? = null
+    var loadMoreItemView: BaseLoadView<*>? = null
 
     /**
      * 空数据占位图
@@ -76,8 +77,8 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     var onLoadMoreListener: OnLoadMoreListener? = null
         set(value) {
             field = value
-            if (loadView == null) {
-                loadView = DefaultLoadView()
+            if (loadMoreItemView == null) {
+                loadMoreItemView = DefaultLoadView(context)
             }
             setupScrollListener()
         }
@@ -110,23 +111,23 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             }
             if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
                 if (dataCount == 0) {
-                    if (loadView != null) {
-                        loadView!!.isNoMoreData()
+                    if (loadMoreItemView != null) {
+                        loadMoreItemView!!.isNoMoreData()
                     }
                     return
                 }
                 //触发加载更多
-                if (onLoadMoreListener != null && isHasMore && loadView != null) {
-                    if (loadView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
+                if (onLoadMoreListener != null && isHasMore && loadMoreItemView != null) {
+                    if (loadMoreItemView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
                         onLoadMoreListener!!.onLoadMore()
                     }
-                    loadView!!.isLoading()
+                    loadMoreItemView!!.isLoading()
                 }
             }
         }
     }
 
-    constructor(lifecycleOwner: LifecycleOwner?) : this() {
+    constructor(context: Context, lifecycleOwner: LifecycleOwner?) : this(context) {
         this.lifecycleOwner = lifecycleOwner
     }
 
@@ -163,8 +164,8 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         //根据getItemViewType方法返回的viewType，判断需要用哪种布局
         if (viewType == LOAD_MORE_TYPE) {
             //加载更多布局
-            return if (loadView != null) {
-                loadView!!.createViewHolder(parent, lifecycleOwner)
+            return if (loadMoreItemView != null) {
+                loadMoreItemView!!.createViewHolder(parent, lifecycleOwner)
             } else {
                 BindHolder(View(parent.context))
             }
@@ -256,15 +257,15 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         mRecyclerView = recyclerView
-        setupSpanSizeLookup()
+        refreshSpanSizeLookup()
         setupScrollListener()
         checkLoadMoreState()
     }
 
     /**
-     * 配置SpanSizeLookup
+     * 刷新SpanSizeLookup
      */
-    private fun setupSpanSizeLookup() {
+    fun refreshSpanSizeLookup() {
         mRecyclerView?.let { rv ->
             val layoutManager = rv.layoutManager
             if (layoutManager is GridLayoutManager) {
@@ -308,10 +309,10 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private fun checkLoadMoreState() {
         //逐步检查必要的参数，最后调用onLoadMore
         var check = isHasMore
-                && loadView != null
+                && loadMoreItemView != null
                 && dataCount > 0
                 && loadMoreWhenItemsNoFullScreen
-                && loadView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING
+                && loadMoreItemView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING
                 && mRecyclerView != null
                 && mRecyclerView!!.layoutManager != null
                 //必须做这个判断，否则容易导致多次调用
@@ -324,7 +325,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                 !mRecyclerView!!.canScrollVertically(1) ||
                 !mRecyclerView!!.canScrollVertically(-1)
         if (!check) return
-        loadView!!.isLoading()
+        loadMoreItemView!!.isLoading()
         onLoadMoreListener!!.onLoadMore()
     }
 
@@ -338,6 +339,13 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (dataSize == size) {
             notifyDataSetChanged()
         }
+    }
+
+    /**
+     * 平滑滚动到某个item
+     */
+    private fun smoothScrollToPosition(position: Int) {
+        mRecyclerView?.smoothScrollToPosition(position)
     }
 
     /**
@@ -384,25 +392,25 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 加载更多完成
      */
     fun loadMoreSuccess() {
-        if (dataCount == 0 || loadView == null || !isHasMore) return
-        loadView!!.isLoadMoreSuccess()
+        if (dataCount == 0 || loadMoreItemView == null || !isHasMore) return
+        loadMoreItemView!!.isLoadMoreSuccess()
     }
 
     /**
      * 加载更多完成，没有更多数据了
      */
     fun loadMoreSuccessAndNoMore() {
-        if (dataCount == 0 || loadView == null) return
+        if (dataCount == 0 || loadMoreItemView == null) return
         isHasMore = false
-        loadView!!.isNoMoreData()
+        loadMoreItemView!!.isNoMoreData()
     }
 
     /**
      * 加载更多失败了
      */
     fun loadMoreFailed() {
-        if (dataCount == 0 || loadView == null || !isHasMore) return
-        loadView!!.isLoadMoreFailed()
+        if (dataCount == 0 || loadMoreItemView == null || !isHasMore) return
+        loadMoreItemView!!.isLoadMoreFailed()
     }
 
     /**
@@ -467,6 +475,19 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param fromPosition 要移动的Item下标
      * @param toPosition   要移动到的位置下标
      */
+    fun movedPositions(fromPosition: Int, toPosition: Int, scrollToThis: Boolean) {
+        movedPositions(fromPosition, toPosition)
+        if (scrollToThis) {
+            smoothScrollToPosition(toPosition)
+        }
+    }
+
+    /**
+     * 移动Item
+     *
+     * @param fromPosition 要移动的Item下标
+     * @param toPosition   要移动到的位置下标
+     */
     fun movedPositions(fromPosition: Int, toPosition: Int) {
         listData.add(toPosition, listData.removeAt(fromPosition)) //数据更换
         notifyItemMoved(fromPosition, toPosition)
@@ -474,6 +495,19 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             min(fromPosition, toPosition),
             abs(fromPosition - toPosition) + 1
         )
+    }
+
+    /**
+     * 添加单个数据
+     *
+     * @param data 单个数据，添加到最后
+     * @param scrollToThis 是否需要滑动列表到这个位置
+     */
+    fun addData(data: Any, scrollToThis: Boolean) {
+        addData(data)
+        if (scrollToThis) {
+            smoothScrollToPosition(listData.indexOf(data))
+        }
     }
 
     /**
@@ -491,8 +525,22 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 插入单个数据
      *
-     * @param data  单个数据
      * @param index 插入位置
+     * @param data 单个数据，添加到最后
+     * @param scrollToThis 是否需要滑动列表到这个位置
+     */
+    fun insertData(index: Int, data: Any, scrollToThis: Boolean) {
+        insertData(index, data)
+        if (scrollToThis) {
+            smoothScrollToPosition(index)
+        }
+    }
+
+    /**
+     * 插入单个数据
+     *
+     * @param index 插入位置
+     * @param data  单个数据
      */
     fun insertData(index: Int, data: Any) {
         listData.add(index, data)
@@ -500,6 +548,20 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(1)
         checkLoadMoreState()
+    }
+
+    /**
+     * 插入多个数据
+     *
+     * @param index 插入位置
+     * @param data 多个数据
+     * @param scrollToThis 是否需要滑动列表到这个位置
+     */
+    fun insertDatas(index: Int, data: ItemData, scrollToThis: Boolean) {
+        insertDatas(index, data)
+        if (scrollToThis) {
+            smoothScrollToPosition(index)
+        }
     }
 
     /**
@@ -518,6 +580,20 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 插入多个数据
      *
+     * @param index 插入位置
+     * @param data 多个数据
+     * @param scrollToThis 是否需要滑动列表到这个位置
+     */
+    fun insertDatas(index: Int, data: List<*>, scrollToThis: Boolean) {
+        insertDatas(index, data)
+        if (scrollToThis) {
+            smoothScrollToPosition(index)
+        }
+    }
+
+    /**
+     * 插入多个数据
+     *
      * @param datas 多个数据
      * @param index 插入位置
      */
@@ -529,16 +605,16 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     /**
-     * 添加数据
+     * 插入多个数据
      *
-     * @param datas 多个数据，添加到最后
+     * @param data 多个数据
+     * @param scrollToThis 是否需要滑动列表到这个位置
      */
-    fun addDatas(datas: List<*>) {
-        val lastIndex = itemCount
-        this.listData.addAll(datas)
-        notifyItemRangeInserted(lastIndex - 1, datas.size)
-        compatibilityDataSizeChanged(datas.size)
-        checkLoadMoreState()
+    fun addDatas(data: List<*>, scrollToThis: Boolean) {
+        val insertIndex = addDatas(data)
+        if (scrollToThis) {
+            smoothScrollToPosition(insertIndex)
+        }
     }
 
     /**
@@ -546,12 +622,40 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      *
      * @param datas 多个数据，添加到最后
      */
-    fun addDatas(datas: ItemData) {
+    fun addDatas(datas: List<*>): Int {
         val lastIndex = itemCount
         this.listData.addAll(datas)
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
         checkLoadMoreState()
+        return lastIndex
+    }
+
+    /**
+     * 插入多个数据
+     *
+     * @param data 多个数据
+     * @param scrollToThis 是否需要滑动列表到这个位置
+     */
+    fun addDatas(data: ItemData, scrollToThis: Boolean) {
+        val insertIndex = addDatas(data)
+        if (scrollToThis) {
+            smoothScrollToPosition(insertIndex)
+        }
+    }
+
+    /**
+     * 添加数据
+     *
+     * @param datas 多个数据，添加到最后
+     */
+    fun addDatas(datas: ItemData): Int {
+        val lastIndex = itemCount
+        this.listData.addAll(datas)
+        notifyItemRangeInserted(lastIndex - 1, datas.size)
+        compatibilityDataSizeChanged(datas.size)
+        checkLoadMoreState()
+        return lastIndex
     }
 
     /**
@@ -581,6 +685,23 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         listData.clear()
         notifyDataSetChanged()
         emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+    }
+
+    /**
+     * 插入多个数据
+     *
+     * @param data 多个数据
+     * @param scrollToThis 是否需要滑动列表到这个位置
+     */
+    fun replace(position: Int, itemData: Any, scrollToThis: Boolean) {
+        if (listData.size <= position) {
+            addData(itemData, scrollToThis)
+            return
+        }
+        replace(position, itemData)
+        if (scrollToThis) {
+            smoothScrollToPosition(position)
+        }
     }
 
     /**

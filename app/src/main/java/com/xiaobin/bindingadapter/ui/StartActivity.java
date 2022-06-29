@@ -18,7 +18,9 @@ import com.xiaobin.bindingadapter.ui.linear.LinearSingleActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredMultiActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredSingleActivity;
 import com.xiaobin.quickbindadapter.DefaultLoadView;
+import com.xiaobin.quickbindadapter.DefaultLoadViewConfigsBean;
 import com.xiaobin.quickbindadapter.DefaultPlaceholder;
+import com.xiaobin.quickbindadapter.DefaultPlaceholderConfigsBean;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 import java.util.Iterator;
@@ -48,28 +50,41 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
          * ...
          * adapter.setLoadView(view)
          */
-        DefaultLoadView.Companion.createGlobalConfig((data) -> {
+        DefaultLoadView.Companion.createGlobalConfig(() -> {
+            DefaultLoadViewConfigsBean data = new DefaultLoadViewConfigsBean();
             data.setNoMoreDataText("没有更多数据啦~~");
             data.setOnFailedText("加载失败555~");
             data.setOnLoadingText("正在超级努力的加载更多啦~~");
             data.setOnSuccessText("加载成功啦，哒哒哒~");
             data.setOnLoadingTextColor(Color.GREEN);
             data.setOnFailedTextColor(Color.RED);
-            data.setOnSuccessTextColor(Color.BLACK);
-            data.setNoMoreDataTextColor(Color.BLACK);
-            return null;
+            data.setOnSuccessTextColor(Color.BLUE);
+            data.setNoMoreDataTextColor(Color.LTGRAY);
+            return data;
+        });
+        /**
+         * 同理配置全局占位页
+         * 仅对使用默认 占位页(DefaultPlaceholder) 控件生效
+         */
+        DefaultPlaceholder.Companion.createGlobalConfig(()-> {
+            DefaultPlaceholderConfigsBean data = new DefaultPlaceholderConfigsBean();
+            data.setEmptyText("似乎是空的");
+            data.setErrorText("获取失败！\n请检查网络！");
+            return data;
         });
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        QuickBindAdapter adapter = new QuickBindAdapter();
+        QuickBindAdapter adapter = new QuickBindAdapter(this);
 
-        DefaultLoadView defaultLoadItem = new DefaultLoadView();
+        DefaultLoadView defaultLoadItem = new DefaultLoadView(this);
         defaultLoadItem.setNoMoreDataText("我滴任务完成啦~");
         defaultLoadItem.setOnFailedText("跟我玩鹰滴是吧！");
         defaultLoadItem.setOnLoadingText("客官请稍等片刻~");
         defaultLoadItem.setOnSuccessText("轻轻松松~");
-        adapter.setLoadView(defaultLoadItem);//设置默认的加载更多布局
+        //如果不设置字体颜色，会应用全局配置里的字体颜色。
+//        defaultLoadItem.setOnLoadingTextColor();
+        adapter.setLoadMoreItemView(defaultLoadItem);//设置默认的加载更多布局
 
-        adapter.setEmptyView(DefaultPlaceholder.Companion.getDefaultPlaceholder());
+        adapter.setEmptyView(new DefaultPlaceholder(this));
         adapter.bind(String.class, R.layout.item_start, BR.data);//绑定数据类型和布局
         adapter.setQuickBind((binding, itemData, position) -> {
             //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里

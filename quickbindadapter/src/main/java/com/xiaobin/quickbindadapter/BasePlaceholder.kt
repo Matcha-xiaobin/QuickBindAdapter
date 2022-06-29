@@ -25,6 +25,7 @@ abstract class BasePlaceholder<
     var loadingView: LoadingPage? = null
     var errorView: ErrorPage? = null
 
+    protected abstract fun onPageCreate(action: PlaceholderAction)
     protected abstract fun onActionCall(action: PlaceholderAction)
 
     fun hasEmptyPage(): Boolean = emptyView != null
@@ -65,6 +66,7 @@ abstract class BasePlaceholder<
             emptyView
         } else {
             emptyView = createPageViewBinding(emptyPageId)
+            onPageCreate(PlaceholderAction.ShowEmptyPage)
             emptyView
         }
     }
@@ -78,6 +80,7 @@ abstract class BasePlaceholder<
             loadingView
         } else {
             loadingView = createPageViewBinding(loadingPageId)
+            onPageCreate(PlaceholderAction.ShowLoadingPage)
             loadingView
         }
     }
@@ -91,12 +94,14 @@ abstract class BasePlaceholder<
             errorView
         } else {
             errorView = createPageViewBinding(errorPageId)
+            onPageCreate(PlaceholderAction.ShowErrPage)
             errorView
         }
     }
 
     fun setPlaceholderAction(action: PlaceholderAction) {
         check()
+        onActionCall(action)
         when (action) {
             PlaceholderAction.ShowEmptyPage -> {
                 getEmptyPage()?.apply {
@@ -121,7 +126,7 @@ abstract class BasePlaceholder<
 
     private fun check() {
         if (placeholderDecorView == null) {
-            throw Exception("请先调用create()方法初始化")
+            throw Exception("请先初始化")
         }
     }
 }

@@ -1,95 +1,116 @@
 package com.xiaobin.quickbindadapter
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
 import androidx.annotation.ColorInt
 import com.xiaobin.quickbindadapter.databinding.ItemLoadmoreBinding
 
+class DefaultLoadViewConfigsBean : Cloneable {
+    var onLoadingText: String = ""
+    var onFailedText: String = ""
+    var noMoreDataText: String = ""
+    var onSuccessText: String = ""
+
+    @ColorInt
+    var onLoadingTextColor: Int = Color.LTGRAY
+
+    @ColorInt
+    var onFailedTextColor: Int = Color.LTGRAY
+
+    @ColorInt
+    var noMoreDataTextColor: Int = Color.LTGRAY
+
+    @ColorInt
+    var onSuccessTextColor: Int = Color.LTGRAY
+
+    public override fun clone(): DefaultLoadViewConfigsBean {
+        return try {
+            return super.clone() as? DefaultLoadViewConfigsBean
+                ?: DefaultLoadViewConfigsBean()
+        } catch (e: CloneNotSupportedException) {
+            DefaultLoadViewConfigsBean()
+        }
+    }
+}
+
 /**
  * 默认的加载更多Item布局
  */
-class DefaultLoadView : BaseLoadView<ItemLoadmoreBinding>(R.layout.item_loadmore) {
+class DefaultLoadView(private val context: Context) :
+    BaseLoadView<ItemLoadmoreBinding>(R.layout.item_loadmore) {
 
     companion object {
-        class DefaultLoadViewConfigsBean(
-            var onLoadingText: String = "努力加载中...",
-            var onFailedText: String = "加载失败了!",
-            var noMoreDataText: String = "没有更多数据",
-            var onSuccessText: String = "加载成功",
-            @ColorInt
-            var onLoadingTextColor: Int = Color.LTGRAY,
-            @ColorInt
-            var onFailedTextColor: Int = Color.LTGRAY,
-            @ColorInt
-            var noMoreDataTextColor: Int = Color.LTGRAY,
-            @ColorInt
-            var onSuccessTextColor: Int = Color.LTGRAY
-        )
-
+        //全局配置
         var globalConfig: DefaultLoadViewConfigsBean? = null
-            get() {
-                if (field == null) {
-                    field = DefaultLoadViewConfigsBean()
-                }
-                return field
-            }
             private set
 
-        fun createGlobalConfig(result: (DefaultLoadViewConfigsBean) -> Unit) {
-            result.invoke(globalConfig!!)
+        //创建全局配置
+        fun createGlobalConfig(result: () -> DefaultLoadViewConfigsBean) {
+            globalConfig = result.invoke()
+        }
+
+        //创建全局配置
+        fun createGlobalConfig(result: DefaultLoadViewConfigsBean) {
+            globalConfig = result
         }
     }
-
-    var config: DefaultLoadViewConfigsBean
 
     init {
-        config = globalConfig!!
-    }
-
-    private fun isUserConfig() {
-        if (config == globalConfig) {
-            config = DefaultLoadViewConfigsBean()
+        if (globalConfig == null) {
+            createGlobalConfig(DefaultLoadViewConfigsBean().apply {
+                onLoadingText = context.getString(R.string.load_onLoading)
+                onFailedText = context.getString(R.string.load_onFailed)
+                noMoreDataText = context.getString(R.string.load_noMoreData)
+                onSuccessText = context.getString(R.string.load_onSuccess)
+                onLoadingTextColor = Color.LTGRAY
+                onFailedTextColor = Color.LTGRAY
+                noMoreDataTextColor = Color.LTGRAY
+                onSuccessTextColor = Color.LTGRAY
+            })
         }
     }
 
+    private var config: DefaultLoadViewConfigsBean = globalConfig!!.clone()
+        set(value) {
+            field = if (value === globalConfig) {
+                //如果是设置的全局配置，则克隆一份
+                value.clone()
+            } else {
+                value
+            }
+        }
+
     fun setOnLoadingText(text: String) {
-        isUserConfig()
         config.onLoadingText = text
     }
 
     fun setOnFailedText(text: String) {
-        isUserConfig()
         config.onFailedText = text
     }
 
     fun setNoMoreDataText(text: String) {
-        isUserConfig()
         config.noMoreDataText = text
     }
 
     fun setOnSuccessText(text: String) {
-        isUserConfig()
         config.onSuccessText = text
     }
 
     fun setOnLoadingTextColor(@ColorInt color: Int) {
-        isUserConfig()
         config.onLoadingTextColor = color
     }
 
     fun setOnFailedTextColor(@ColorInt color: Int) {
-        isUserConfig()
         config.onFailedTextColor = color
     }
 
     fun setNoMoreDataTextColor(@ColorInt color: Int) {
-        isUserConfig()
         config.noMoreDataTextColor = color
     }
 
     fun setOnSuccessTextColor(@ColorInt color: Int) {
-        isUserConfig()
         config.onSuccessTextColor = color
     }
 

@@ -39,7 +39,7 @@ public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        QuickBindAdapter adapter = new QuickBindAdapter();
+        QuickBindAdapter adapter = new QuickBindAdapter(this);
         //绑定数据类型和布局
         adapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
         //添加子控件点击事件

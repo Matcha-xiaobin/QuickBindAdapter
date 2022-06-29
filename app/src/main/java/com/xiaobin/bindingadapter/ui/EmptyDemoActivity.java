@@ -39,9 +39,9 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        bindAdapter = new QuickBindAdapter();
+        bindAdapter = new QuickBindAdapter(this);
         bindAdapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
-        bindAdapter.setEmptyView(DefaultPlaceholder.Companion.getDefaultPlaceholder());//设置默认的无数据时占位布局
+        bindAdapter.setEmptyView(new DefaultPlaceholder(this));//设置默认的无数据时占位布局
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(bindAdapter);
     }
@@ -49,7 +49,7 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
     public void addData(View view) {
         ChatListBean item = new ChatListBean();
         item.setId("嘿咻");
-        bindAdapter.addData(item);
+        bindAdapter.addData(item, true);
     }
 
     public void reduceData(View view) {
