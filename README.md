@@ -37,7 +37,6 @@
         > setLoadView(BaseLoadView) -> setLoadMoreItemView(BaseLoadView)
         > setCanLoadMoreWhenNoFullContent(boolean) -> setLoadMoreWhenItemsNoFullScreen(boolean)
         > setSpanSizeLookup(SpanSizeLookup) 已移除，如有需要，在调用setAdapter之前给layoutManager设置spanSizeLookup即可，如有需要，可以在重新设置spanSizeLookup后调用adapter.refreshSpanSizeLookup()刷新
-        > setSpanSizeLookup(SpanSizeLookup) 已移除，如有需要，在调用setAdapter之前给layoutManager设置spanSizeLookup即可，如有需要，可以在重新设置spanSizeLookup后调用adapter.refreshSpanSizeLookup()刷新
     更多请在demo中查看
 
     注意：以下文档按照最新的版本编写
