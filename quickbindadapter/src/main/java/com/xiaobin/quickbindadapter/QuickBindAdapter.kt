@@ -25,27 +25,6 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private val LOAD_MORE_TYPE = -2
     private val NONE_VIEW_TYPE = -3
 
-    private var isHasMore = true
-
-    //加载更多item样式
-    var loadView: BaseLoadView<*>? = null
-
-    val defaultLoadItem: DefaultLoadView by lazy {
-        DefaultLoadView()
-    }
-
-    //空数据占位图
-    var emptyView: BasePlaceholder<*, *, *>? = null
-
-    val defaultPlaceholder: DefaultPlaceholder by lazy {
-        DefaultPlaceholder()
-    }
-
-    var lifecycleOwner: LifecycleOwner? = null
-
-    //是否允许列表数据不满一页时自动加载更多
-    var canLoadMoreWhenNoFullContent = true
-
     //数据类型集合
     private val clazzList: MutableList<Class<*>> = ArrayList()
 
@@ -60,14 +39,34 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private val longClickListenerIds: MutableMap<Class<*>, List<Int>> = HashMap()
 
     /**
-     * 获得全部item数据
-     *
-     * @return 整个数据ArrayList
+     * 加载更多item样式
      */
-    //数据集合
+    var loadView: BaseLoadView<*>? = null
+
+    /**
+     * 空数据占位图
+     */
+    var emptyView: BasePlaceholder<*, *, *>? = null
+
+    /**
+     * 生命周期，目前的想法只是给dataBinding提供一些用处
+     */
+    var lifecycleOwner: LifecycleOwner? = null
+
+    /**
+     * 是否允许列表数据不满一页时触发自动加载更多
+     * 无论是否设置为true，当数据量少于1时不会触发
+     */
+    var loadMoreWhenItemsNoFullScreen = true
+
+    /**
+     * 获得全部item数据，不包含底部的加载更多item
+     */
     private var listData: ItemData = ItemData()
 
-    //额外的item样式处理
+    /**
+     * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
+     */
     var quickBind: QuickBind? = null
 
     /**
@@ -78,11 +77,13 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         set(value) {
             field = value
             if (loadView == null) {
-                loadView = defaultLoadItem
+                loadView = DefaultLoadView()
             }
             setupScrollListener()
         }
     var mRecyclerView: RecyclerView? = null
+
+    private var isHasMore = true
 
     private val onScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -110,16 +111,16 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
                 if (dataCount == 0) {
                     if (loadView != null) {
-                        loadView!!.isLoadMoreEnd()
+                        loadView!!.isNoMoreData()
                     }
                     return
                 }
                 //触发加载更多
                 if (onLoadMoreListener != null && isHasMore && loadView != null) {
-                    if (loadView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING_MORE) {
+                    if (loadView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
                         onLoadMoreListener!!.onLoadMore()
                     }
-                    loadView!!.isLoadMore()
+                    loadView!!.isLoading()
                 }
             }
         }
@@ -257,6 +258,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         mRecyclerView = recyclerView
         setupSpanSizeLookup()
         setupScrollListener()
+        checkLoadMoreState()
     }
 
     /**
@@ -285,31 +287,6 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
     }
 
-    /**
-     * 加载更多完成
-     */
-    fun loadMoreComplete() {
-        if (dataCount == 0 || loadView == null || !isHasMore) return
-        loadView!!.isLoadMoreSuccess()
-    }
-
-    /**
-     * 加载更多完成，没有更多数据了
-     */
-    fun loadMoreEnd() {
-        if (dataCount == 0 || loadView == null) return
-        isHasMore = false
-        loadView!!.isLoadMoreEnd()
-    }
-
-    /**
-     * 加载更多失败了
-     */
-    fun loadMoreFail() {
-        if (dataCount == 0 || loadView == null || !isHasMore) return
-        loadView!!.isLoadMoreFail()
-    }
-
     private fun setupScrollListener() {
         if (onLoadMoreListener == null) return
         //先移除之前的，在添加，防止重复添加
@@ -322,6 +299,110 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             return -1
         }
         return numbers.max()
+    }
+
+    /**
+     * 检查RV是否可以滑动，如果不可滑动(视为数据没有占满一页的情况)，并且开启了不满一页也可触发加载更多
+     * 则触发加载更多回调
+     */
+    private fun checkLoadMoreState() {
+        //逐步检查必要的参数，最后调用onLoadMore
+        var check = isHasMore
+                && loadView != null
+                && dataCount > 0
+                && loadMoreWhenItemsNoFullScreen
+                && loadView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING
+                && mRecyclerView != null
+                && mRecyclerView!!.layoutManager != null
+                //必须做这个判断，否则容易导致多次调用
+                && mRecyclerView!!.layoutManager!!.childCount == itemCount
+                && getItemViewType(itemCount - 1) == LOAD_MORE_TYPE
+        if (!check) return
+        //检查RV是否可以滑动，如果不可滑动(视为数据没有占满一页的情况)
+        check = !mRecyclerView!!.canScrollHorizontally(1) ||
+                !mRecyclerView!!.canScrollHorizontally(-1) ||
+                !mRecyclerView!!.canScrollVertically(1) ||
+                !mRecyclerView!!.canScrollVertically(-1)
+        if (!check) return
+        loadView!!.isLoading()
+        onLoadMoreListener!!.onLoadMore()
+    }
+
+    /**
+     * 如果变动的数据大小和实际数据大小一致，则刷新整个列表
+     *
+     * @param size 变动的数据大小
+     */
+    private fun compatibilityDataSizeChanged(size: Int) {
+        val dataSize = listData.size
+        if (dataSize == size) {
+            notifyDataSetChanged()
+        }
+    }
+
+    /**
+     * item事件
+     */
+    var onItemClickListener: OnClickListener? = null
+    var onItemLongClickListener: OnLongClickListener? = null
+
+    /**
+     * 子控件事件
+     */
+    var onItemChildClickListener: OnClickListener? = null
+    var onItemChildLongClickListener: OnLongClickListener? = null
+
+    /**
+     * 点击事件
+     */
+    interface OnClickListener {
+        fun onClick(adapter: QuickBindAdapter, view: View, data: Any, position: Int)
+    }
+
+    /**
+     * 长按事件
+     */
+    interface OnLongClickListener {
+        fun onLongClick(
+            adapter: QuickBindAdapter,
+            view: View,
+            data: Any,
+            position: Int
+        ): Boolean
+    }
+
+    /**
+     * 加载更多
+     */
+    interface OnLoadMoreListener {
+        fun onLoadMore()
+    }
+
+    /******************************  **************************************/
+
+    /**
+     * 加载更多完成
+     */
+    fun loadMoreSuccess() {
+        if (dataCount == 0 || loadView == null || !isHasMore) return
+        loadView!!.isLoadMoreSuccess()
+    }
+
+    /**
+     * 加载更多完成，没有更多数据了
+     */
+    fun loadMoreSuccessAndNoMore() {
+        if (dataCount == 0 || loadView == null) return
+        isHasMore = false
+        loadView!!.isNoMoreData()
+    }
+
+    /**
+     * 加载更多失败了
+     */
+    fun loadMoreFailed() {
+        if (dataCount == 0 || loadView == null || !isHasMore) return
+        loadView!!.isLoadMoreFailed()
     }
 
     /**
@@ -343,37 +424,6 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     /**
-     * 检查RV是否可以滑动，如果不可滑动(视为数据没有占满一页的情况)，并且开启了不满一页也可触发加载更多
-     * 则触发加载更多回调
-     */
-    private fun checkScrollState() {
-        if (mRecyclerView != null && dataCount > 0 && canLoadMoreWhenNoFullContent
-            && onLoadMoreListener != null && loadView != null
-        ) {
-            mRecyclerView!!.post {
-                if (mRecyclerView!!.layoutManager == null) return@post
-                if (mRecyclerView!!.layoutManager!!.childCount == itemCount) {
-                    if (!mRecyclerView!!.canScrollHorizontally(1) ||
-                        !mRecyclerView!!.canScrollHorizontally(-1) ||
-                        !mRecyclerView!!.canScrollVertically(1) ||
-                        !mRecyclerView!!.canScrollVertically(-1)
-                    ) {
-                        //四个方向都不能滑动
-                        if (loadView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING_MORE) {
-                            if (getItemViewType(itemCount - 1) == LOAD_MORE_TYPE) {
-                                if (onLoadMoreListener != null && isHasMore) {
-                                    loadView!!.isLoadMore()
-                                    onLoadMoreListener!!.onLoadMore()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * 设置新的数据
      *
      * @param data 全新数据
@@ -385,9 +435,10 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
         isHasMore = listData.size != 0
         notifyDataSetChanged()
-        checkScrollState()
         if (listData.isEmpty()) {
             emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+        } else {
+            checkLoadMoreState()
         }
     }
 
@@ -403,9 +454,10 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
         isHasMore = listData.size != 0
         notifyDataSetChanged()
-        checkScrollState()
         if (listData.isEmpty()) {
             emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+        } else {
+            checkLoadMoreState()
         }
     }
 
@@ -433,7 +485,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         listData.add(data)
         notifyItemInserted(listData.size)
         compatibilityDataSizeChanged(1)
-        checkScrollState()
+        checkLoadMoreState()
     }
 
     /**
@@ -447,6 +499,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         notifyItemInserted(index)
         notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(1)
+        checkLoadMoreState()
     }
 
     /**
@@ -459,6 +512,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         this.listData.addAll(index, datas)
         notifyItemRangeChanged(index, datas.size - index)
         compatibilityDataSizeChanged(datas.size)
+        checkLoadMoreState()
     }
 
     /**
@@ -471,6 +525,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         this.listData.addAll(index, datas)
         notifyItemRangeChanged(index, itemCount - index)
         compatibilityDataSizeChanged(datas.size)
+        checkLoadMoreState()
     }
 
     /**
@@ -483,7 +538,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         this.listData.addAll(datas)
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
-        checkScrollState()
+        checkLoadMoreState()
     }
 
     /**
@@ -496,7 +551,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         this.listData.addAll(datas)
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
-        checkScrollState()
+        checkLoadMoreState()
     }
 
     /**
@@ -514,6 +569,8 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         notifyItemRangeChanged(position, listData.size - position)
         if (listData.isEmpty()) {
             emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+        } else {
+            checkLoadMoreState()
         }
     }
 
@@ -580,7 +637,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param viewId 控件ID，多个
      * @return 这个对象
      */
-    fun addClickListener(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindAdapter {
+    fun addClicks(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindAdapter {
         val ids: MutableList<Int> = ArrayList(viewId.size)
         for (id in viewId) {
             ids.add(id)
@@ -596,7 +653,7 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param viewId 控件ID，多个
      * @return 这个对象
      */
-    fun addLongClickListener(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindAdapter {
+    fun addLongClicks(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindAdapter {
         val ids: MutableList<Int> = ArrayList(viewId.size)
         for (id in viewId) {
             ids.add(id)
@@ -622,56 +679,5 @@ class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      */
     val dataCount: Int
         get() = listData.size
-
-    //*******************************用于外部调用的方法 结束******************************
-    /**
-     * 如果变动的数据大小和实际数据大小一致，则刷新整个列表
-     *
-     * @param size 变动的数据大小
-     */
-    private fun compatibilityDataSizeChanged(size: Int) {
-        val dataSize = listData.size
-        if (dataSize == size) {
-            notifyDataSetChanged()
-        }
-    }
-
-    /**
-     * item事件
-     */
-    var onItemClickListener: OnClickListener? = null
-    var onItemLongClickListener: OnLongClickListener? = null
-
-    /**
-     * 子控件事件
-     */
-    var onItemChildClickListener: OnClickListener? = null
-    var onItemChildLongClickListener: OnLongClickListener? = null
-
-    /**
-     * 点击事件
-     */
-    interface OnClickListener {
-        fun onClick(adapter: QuickBindAdapter, view: View, data: Any, position: Int)
-    }
-
-    /**
-     * 长按事件
-     */
-    interface OnLongClickListener {
-        fun onLongClick(
-            adapter: QuickBindAdapter,
-            view: View,
-            data: Any,
-            position: Int
-        ): Boolean
-    }
-
-    /**
-     * 加载更多
-     */
-    interface OnLoadMoreListener {
-        fun onLoadMore()
-    }
 
 }

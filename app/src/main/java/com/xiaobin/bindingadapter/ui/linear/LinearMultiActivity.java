@@ -1,7 +1,6 @@
 package com.xiaobin.bindingadapter.ui.linear;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -45,8 +44,8 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
         adapter.bind(String.class, R.layout.item_head, BR.data);
         //添加子控件点击事件
-        adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
-        adapter.addClickListener(String.class, R.id.tv_name);
+        adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(String.class, R.id.tv_name);
 
         //务必先调用setLayoutManager
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -78,7 +77,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     dataList.add(item);
                 }
                 adapter.addDatas(dataList);
-                adapter.loadMoreEnd();
+                adapter.loadMoreSuccessAndNoMore();
             }, 3000);
         });
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里

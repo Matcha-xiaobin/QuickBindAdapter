@@ -1,8 +1,8 @@
 package com.xiaobin.bindingadapter.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -17,9 +17,12 @@ import com.xiaobin.bindingadapter.ui.linear.LinearMultiActivity;
 import com.xiaobin.bindingadapter.ui.linear.LinearSingleActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredMultiActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredSingleActivity;
+import com.xiaobin.quickbindadapter.DefaultLoadView;
+import com.xiaobin.quickbindadapter.DefaultPlaceholder;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
-import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * @author 小斌
@@ -34,9 +37,39 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        /**
+         * 全局配置默认加载更多布局的配置，仅对使用默认加载更多布局生效，尽可能早配置。
+         * 可以放在Application里配置，这是优先级最低的
+         * 配置这个不会影响在创建adapter时再自定义配置：
+         * 比如：
+         * DefaultLoadView view = new DefaultLoadView()
+         * view.setNoMoreDataText("")
+         * view.setOnFailedText("")
+         * ...
+         * adapter.setLoadView(view)
+         */
+        DefaultLoadView.Companion.createGlobalConfig((data) -> {
+            data.setNoMoreDataText("没有更多数据啦~~");
+            data.setOnFailedText("加载失败555~");
+            data.setOnLoadingText("正在超级努力的加载更多啦~~");
+            data.setOnSuccessText("加载成功啦，哒哒哒~");
+            data.setOnLoadingTextColor(Color.GREEN);
+            data.setOnFailedTextColor(Color.RED);
+            data.setOnSuccessTextColor(Color.BLACK);
+            data.setNoMoreDataTextColor(Color.BLACK);
+            return null;
+        });
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         QuickBindAdapter adapter = new QuickBindAdapter();
-        adapter.setLoadView(adapter.getDefaultLoadItem());//设置默认的加载更多布局
+
+        DefaultLoadView defaultLoadItem = new DefaultLoadView();
+        defaultLoadItem.setNoMoreDataText("我滴任务完成啦~");
+        defaultLoadItem.setOnFailedText("跟我玩鹰滴是吧！");
+        defaultLoadItem.setOnLoadingText("客官请稍等片刻~");
+        defaultLoadItem.setOnSuccessText("轻轻松松~");
+        adapter.setLoadView(defaultLoadItem);//设置默认的加载更多布局
+
+        adapter.setEmptyView(DefaultPlaceholder.Companion.getDefaultPlaceholder());
         adapter.bind(String.class, R.layout.item_start, BR.data);//绑定数据类型和布局
         adapter.setQuickBind((binding, itemData, position) -> {
             //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
@@ -80,16 +113,35 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
             intent.setClass(this, mClass);
             startActivity(intent);
         });
+
+        //数据，这里为了模拟加载更多效果，使用LinkedList逐个加载数据
+        LinkedList<String> linkedList = new LinkedList<>();
+        linkedList.add("LinearLayout单布局");
+        linkedList.add("LinearLayout多布局");
+        linkedList.add("GridLayout单布局");
+        linkedList.add("GridLayout多布局");
+        linkedList.add("StaggeredGridLayout单布局");
+        linkedList.add("StaggeredGridLayout多布局");
+        linkedList.add("空数据占位布局");
+        Iterator<String> iterator = linkedList.iterator();
+        adapter.addData(iterator.next());
+
+        /**
+         * 配置加载更多监听，如果配置了这个，即使没有调用过adapter.setLoadView()方法，则自动使用默认的加载布局
+         * 等同于调用了adapter.setLoadView(adapter.getDefaultLoadItem());
+         */
         adapter.setOnLoadMoreListener(() -> {
-            Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
-            binding.getRoot().postDelayed(adapter::loadMoreEnd, 2000);
+            binding.getRoot().postDelayed(() -> {
+                if (iterator.hasNext()) {
+                    //建议是先调用loadMoreSuccess再设置数据
+                    adapter.addData(iterator.next());
+                    adapter.loadMoreSuccess();
+                } else {
+                    adapter.loadMoreSuccessAndNoMore();
+                }
+            }, 300);
         });
         binding.recyclerView.setAdapter(adapter);
 
-        adapter.setNewData(Arrays.asList(
-                "LinearLayout单布局", "LinearLayout多布局",
-                "GridLayout单布局", "GridLayout多布局",
-                "StaggeredGridLayout单布局", "StaggeredGridLayout多布局",
-                "空数据占位布局"));
     }
 }

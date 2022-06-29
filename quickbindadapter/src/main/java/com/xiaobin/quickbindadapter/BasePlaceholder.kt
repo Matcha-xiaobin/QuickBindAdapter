@@ -14,8 +14,8 @@ abstract class BasePlaceholder<
         >
     (
     private val emptyPageId: Int,
+    private val errorPageId: Int,
     private val loadingPageId: Int,
-    private val errorPageId: Int
 ) {
 
     private var placeholderDecorView: LayoutPlaceholderBinding? = null

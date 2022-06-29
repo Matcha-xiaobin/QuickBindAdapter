@@ -1,7 +1,6 @@
 package com.xiaobin.bindingadapter.ui.grid;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -45,8 +44,8 @@ public class GridMultiActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.bind(ChatListBean.class, R.layout.item_grid, BR.data);
         adapter.bind(String.class, R.layout.item_head, BR.data);
         //添加子控件点击事件
-        adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
-        adapter.addClickListener(String.class, R.id.tv_name);
+        adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(String.class, R.id.tv_name);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -91,7 +90,7 @@ public class GridMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     dataList.add(item);
                 }
                 adapter.addDatas(dataList);
-                adapter.loadMoreEnd();
+                adapter.loadMoreSuccessAndNoMore();
             }, 3000);
         });
 

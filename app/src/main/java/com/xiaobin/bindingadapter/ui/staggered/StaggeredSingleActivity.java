@@ -4,14 +4,12 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.xiaobin.bindingadapter.BR;
 import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityBaseBinding;
-import com.xiaobin.bindingadapter.databinding.ItemGridBinding;
 import com.xiaobin.bindingadapter.databinding.ItemStaggeredBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
 import com.xiaobin.quickbindadapter.ItemData;
@@ -44,7 +42,7 @@ public class StaggeredSingleActivity extends BaseActivity<ActivityBaseBinding> {
         //绑定数据类型和布局
         adapter.bind(ChatListBean.class, R.layout.item_staggered, BR.data);
         //添加子控件点击事件
-        adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
 
         binding.recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
         binding.recyclerView.setAdapter(adapter);

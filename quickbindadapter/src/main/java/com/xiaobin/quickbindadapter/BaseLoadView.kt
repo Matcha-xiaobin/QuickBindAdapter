@@ -9,14 +9,14 @@ import androidx.lifecycle.LifecycleOwner
 abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
 
     enum class LoadMoreState {
-        LOADING_MORE, LOAD_SUCCESS, LOAD_FAIL, LOAD_COMPLETE
+        LOADING, SUCCESS, FAILED, NO_MORE
     }
 
     //加载更多
-    var loadMoreState = LoadMoreState.LOAD_SUCCESS
+    var loadMoreState = LoadMoreState.SUCCESS
         private set
 
-    protected var loadView: T? = null
+    private var loadView: T? = null
 
     fun createViewHolder(parent: ViewGroup, lifecycleOwner: LifecycleOwner? = null): BindHolder {
         loadView = DataBindingUtil.inflate(
@@ -25,32 +25,32 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
             parent, false
         )
         initView(loadView)
-        isLoadMoreEnd()
+        isNoMoreData()
         return BindHolder(loadView!!, lifecycleOwner)
     }
 
-    fun isLoadMore() {
-        if (loadMoreState == LoadMoreState.LOADING_MORE || loadView == null) return
-        loadMoreState = LoadMoreState.LOADING_MORE
-        onLoadMore(loadView!!)
+    fun isLoading() {
+        if (loadMoreState == LoadMoreState.LOADING || loadView == null) return
+        loadMoreState = LoadMoreState.LOADING
+        onLoading(loadView!!)
     }
 
-    fun isLoadMoreEnd() {
-        if (loadMoreState == LoadMoreState.LOAD_COMPLETE || loadView == null) return
-        loadMoreState = LoadMoreState.LOAD_COMPLETE
-        onLoadEnd(loadView!!)
+    fun isNoMoreData() {
+        if (loadMoreState == LoadMoreState.NO_MORE || loadView == null) return
+        loadMoreState = LoadMoreState.NO_MORE
+        onNoMoreData(loadView!!)
     }
 
     fun isLoadMoreSuccess() {
-        if (loadMoreState == LoadMoreState.LOAD_SUCCESS || loadView == null) return
-        loadMoreState = LoadMoreState.LOAD_SUCCESS
+        if (loadMoreState == LoadMoreState.SUCCESS || loadView == null) return
+        loadMoreState = LoadMoreState.SUCCESS
         onLoadSuccess(loadView!!)
     }
 
-    fun isLoadMoreFail() {
-        if (loadMoreState == LoadMoreState.LOAD_FAIL || loadView == null) return
-        loadMoreState = LoadMoreState.LOAD_FAIL
-        onLoadFail(loadView!!)
+    fun isLoadMoreFailed() {
+        if (loadMoreState == LoadMoreState.FAILED || loadView == null) return
+        loadMoreState = LoadMoreState.FAILED
+        onLoadFailed(loadView!!)
     }
 
     protected abstract fun initView(loadView: T?)
@@ -58,12 +58,12 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     /**
      * 正在加载更多
      */
-    protected abstract fun onLoadMore(loadView: T)
+    protected abstract fun onLoading(loadView: T)
 
     /**
      * 加载完成，没有更多
      */
-    protected abstract fun onLoadEnd(loadView: T)
+    protected abstract fun onNoMoreData(loadView: T)
 
     /**
      * 加载成功
@@ -73,5 +73,5 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     /**
      * 加载失败
      */
-    protected abstract fun onLoadFail(loadView: T)
+    protected abstract fun onLoadFailed(loadView: T)
 }

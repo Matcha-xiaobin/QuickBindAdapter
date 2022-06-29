@@ -10,6 +10,7 @@ import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityEmptyBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
+import com.xiaobin.quickbindadapter.DefaultPlaceholder;
 import com.xiaobin.quickbindadapter.PlaceholderAction;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
@@ -40,7 +41,7 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
     protected void initView(Bundle savedInstanceState) {
         bindAdapter = new QuickBindAdapter();
         bindAdapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
-        bindAdapter.setEmptyView(bindAdapter.getDefaultPlaceholder());//设置默认的无数据时占位布局
+        bindAdapter.setEmptyView(DefaultPlaceholder.Companion.getDefaultPlaceholder());//设置默认的无数据时占位布局
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(bindAdapter);
     }

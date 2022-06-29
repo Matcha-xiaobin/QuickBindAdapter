@@ -43,7 +43,7 @@ public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
         //绑定数据类型和布局
         adapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
         //添加子控件点击事件
-        adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(adapter);
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里

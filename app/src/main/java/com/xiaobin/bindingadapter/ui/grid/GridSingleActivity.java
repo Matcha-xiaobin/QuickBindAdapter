@@ -42,7 +42,7 @@ public class GridSingleActivity extends BaseActivity<ActivityBaseBinding> {
         //绑定数据类型和布局
         adapter.bind(ChatListBean.class, R.layout.item_grid, BR.data);
         //添加子控件点击事件
-        adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
 
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         binding.recyclerView.setAdapter(adapter);

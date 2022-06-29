@@ -55,9 +55,9 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
          */
         adapter.bind(StaggeredHeadBean.class, R.layout.item_staggered_head, BR.data);
         //添加子控件点击事件
-        adapter.addClickListener(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
-        adapter.addClickListener(ChatListBean2.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
-        adapter.addClickListener(StaggeredHeadBean.class, R.id.tv_name);
+        adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(ChatListBean2.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
+        adapter.addClicks(StaggeredHeadBean.class, R.id.tv_name);
 
         //务必先调用setLayoutManager
         binding.recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
@@ -67,7 +67,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
             binding.getRoot().postDelayed(() -> {
                 adapter.addDatas(createSomeData());
-                adapter.loadMoreEnd();
+                adapter.loadMoreSuccessAndNoMore();
             }, 3000);
         });
 
