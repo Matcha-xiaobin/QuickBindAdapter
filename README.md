@@ -119,7 +119,7 @@
 ### 获取item数据的api;
       
       所有数据
-      ItemData dataList = adapter.getDatas();
+      ItemData dataList = adapter.getListData();
       
       单个数据
       Object itemData = adapter.getItemData(position);
@@ -130,33 +130,22 @@
     
     例如：
         ItemData dataList = new ItemData();
+        dataList.add("Group");
         ChatListBean item;
-        for (int i = 0; i < 15; i++) {
-            switch (i) {
-                case 0:
-                    dataList.add("分组一");
-                    break;
-                case 3:
-                    dataList.add("分组二");
-                    break;
-                case 5:
-                    dataList.add("分组三");
-                    break;
-                case 7:
-                    dataList.add("分组四");
-                    break;
-                default:
-                    break;
-            }
+        for (int i = 0; i < 5; i++) {
             item = new ChatListBean();
             item.setId(String.valueOf(i));
             dataList.add(item);
         }
         adapter.setNewData(dataList);
-                      
-    如果仅一种类型，可以直接使用：
-                      
-    adapter.setNewData(dataList);
+    或者你也可以直接：
+        adapter.addData("Group")
+        ChatListBean item;
+        for (int i = 0; i < 5; i++) {
+            item = new ChatListBean();
+            item.setId(String.valueOf(i));
+            adapter.addData(item);
+        }
                                                      
 ### 添加数据
                                   
