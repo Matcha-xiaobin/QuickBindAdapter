@@ -21,6 +21,8 @@ abstract class BasePlaceholder<
     private var placeholderDecorView: LayoutPlaceholderBinding? = null
     private var lifecycleOwner: LifecycleOwner? = null
 
+    var defaultPlaceholderPage: PlaceholderAction = PlaceholderAction.ShowLoadingPage
+
     var emptyView: EmptyPage? = null
     var loadingView: LoadingPage? = null
     var errorView: ErrorPage? = null
@@ -43,7 +45,7 @@ abstract class BasePlaceholder<
             lifecycleOwner = this
             placeholderDecorView!!.lifecycleOwner = this
         }
-        setPlaceholderAction(PlaceholderAction.ShowLoadingPage)
+        setPlaceholderAction(defaultPlaceholderPage)
         return BindHolder(placeholderDecorView!!, mLifecycleOwner)
     }
 
@@ -58,7 +60,7 @@ abstract class BasePlaceholder<
     }
 
     private fun getEmptyPage(): EmptyPage? {
-        check()
+        if (!check()) return null
         return if (hasEmptyPage()) {
             lifecycleOwner?.let {
                 emptyView!!.lifecycleOwner = it
@@ -72,7 +74,7 @@ abstract class BasePlaceholder<
     }
 
     private fun getLoadingPage(): LoadingPage? {
-        check()
+        if (!check()) return null
         return if (hasLoadingPage()) {
             lifecycleOwner?.let {
                 loadingView!!.lifecycleOwner = it
@@ -86,7 +88,7 @@ abstract class BasePlaceholder<
     }
 
     private fun getErrorPage(): ErrorPage? {
-        check()
+        if (!check()) return null
         return if (hasErrorPage()) {
             lifecycleOwner?.let {
                 errorView!!.lifecycleOwner = it
@@ -100,7 +102,7 @@ abstract class BasePlaceholder<
     }
 
     fun setPlaceholderAction(action: PlaceholderAction) {
-        check()
+        if (!check()) return
         onActionCall(action)
         when (action) {
             PlaceholderAction.ShowEmptyPage -> {
@@ -124,10 +126,11 @@ abstract class BasePlaceholder<
         }
     }
 
-    private fun check() {
+    private fun check(): Boolean {
         if (placeholderDecorView == null) {
-            throw Exception("请先初始化")
+            return false
         }
+        return true
     }
 }
 

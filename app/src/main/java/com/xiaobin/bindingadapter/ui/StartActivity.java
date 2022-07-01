@@ -66,7 +66,7 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
          * 同理配置全局占位页
          * 仅对使用默认 占位页(DefaultPlaceholder) 控件生效
          */
-        DefaultPlaceholder.Companion.createGlobalConfig(()-> {
+        DefaultPlaceholder.Companion.createGlobalConfig(() -> {
             DefaultPlaceholderConfigsBean data = new DefaultPlaceholderConfigsBean();
             data.setEmptyText("似乎是空的");
             data.setErrorText("获取失败！\n请检查网络！");
@@ -132,14 +132,16 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
         //数据，这里为了模拟加载更多效果，使用LinkedList逐个加载数据
         LinkedList<String> linkedList = new LinkedList<>();
         linkedList.add("LinearLayout单布局");
-        linkedList.add("LinearLayout多布局");
+        linkedList.add("LinearLayout多布局 + 加载更多");
         linkedList.add("GridLayout单布局");
-        linkedList.add("GridLayout多布局");
+        linkedList.add("GridLayout多布局 + 加载更多");
         linkedList.add("StaggeredGridLayout单布局");
-        linkedList.add("StaggeredGridLayout多布局");
+        linkedList.add("StaggeredGridLayout多布局 + 加载更多");
         linkedList.add("空数据占位布局");
         Iterator<String> iterator = linkedList.iterator();
-        adapter.addData(iterator.next());
+        binding.getRoot().postDelayed(() -> {
+            adapter.addData(iterator.next());
+        }, 1000);
 
         /**
          * 配置加载更多监听，如果配置了这个，即使没有调用过adapter.setLoadView()方法，则自动使用默认的加载布局
