@@ -802,4 +802,15 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
     val dataCount: Int
         get() = listData.size
 
+    /**
+     * 展示加载中页面
+     * @param clearDatas 是否清空已有数据，如果不清空，则不会显示加载中页面
+     */
+    fun showLoadPage(clearDatas: Boolean = false) {
+        if (clearDatas) {
+            listData.clear()
+            notifyDataSetChanged()
+        }
+        emptyView?.setPlaceholderAction(PlaceholderAction.ShowLoadingPage)
+    }
 }

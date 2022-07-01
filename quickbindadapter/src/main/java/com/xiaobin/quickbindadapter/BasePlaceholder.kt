@@ -102,7 +102,10 @@ abstract class BasePlaceholder<
     }
 
     fun setPlaceholderAction(action: PlaceholderAction) {
-        if (!check()) return
+        if (!check()) {
+            defaultPlaceholderPage = action
+            return
+        }
         onActionCall(action)
         when (action) {
             PlaceholderAction.ShowEmptyPage -> {
