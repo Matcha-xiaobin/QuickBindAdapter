@@ -106,7 +106,6 @@ abstract class BasePlaceholder<
             defaultPlaceholderPage = action
             return
         }
-        onActionCall(action)
         when (action) {
             PlaceholderAction.ShowEmptyPage -> {
                 getEmptyPage()?.apply {
@@ -127,6 +126,7 @@ abstract class BasePlaceholder<
                 }
             }
         }
+        onActionCall(action)
     }
 
     private fun check(): Boolean {

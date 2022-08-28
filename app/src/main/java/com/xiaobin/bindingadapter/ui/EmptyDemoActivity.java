@@ -14,8 +14,6 @@ import com.xiaobin.quickbindadapter.DefaultPlaceholder;
 import com.xiaobin.quickbindadapter.PlaceholderAction;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
-import java.util.Objects;
-
 /**
  * @author 小斌
  * @data 2019/8/20
@@ -41,12 +39,14 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        bindAdapter = new QuickBindAdapter(this);
-        bindAdapter.bind(ChatListBean.class, R.layout.item_linear, BR.data);
-        bindAdapter.setEmptyView(new DefaultPlaceholder(this));//设置默认的无数据时占位布局
-        //修改默认初始显示无数据， 不修改则是加载中
         PlaceholderAction.ShowEmptyPage showEmptyPage = PlaceholderAction.ShowEmptyPage.INSTANCE;
-        Objects.requireNonNull(bindAdapter.getEmptyView()).setDefaultPlaceholderPage(showEmptyPage);
+        //修改默认初始显示无数据， 不修改则是加载中
+        DefaultPlaceholder defaultPlaceholder = new DefaultPlaceholder(this);
+        defaultPlaceholder.setDefaultPlaceholderPage(showEmptyPage);
+        bindAdapter = QuickBindAdapter.Companion.create()
+                .bind(ChatListBean.class, R.layout.item_linear, BR.data)
+                .setEmptyView(defaultPlaceholder);//设置默认的无数据时占位布局
+
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(bindAdapter);
     }

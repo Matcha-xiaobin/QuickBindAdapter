@@ -22,15 +22,14 @@
 
             <ImageView
                 android:id="@+id/iv_image"
-                circleImage="@{data.drawableId}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_margin="12dp"
+                android:src="@mipmap/ic_launcher"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@mipmap/ic_launcher" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tv_name"

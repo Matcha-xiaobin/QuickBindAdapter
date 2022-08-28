@@ -13,7 +13,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 32
         versionCode 1
-        versionName "3.0.6"
+        versionName "3.0.7"
     }
 
     compileOptions {
@@ -34,6 +34,6 @@ android {
 
 dependencies {
     compileOnly 'androidx.recyclerview:recyclerview:1.2.1'
-    implementation "androidx.core:core-ktx:1.8.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compileOnly "androidx.core:core-ktx:1.8.0"
+    compileOnly 'androidx.appcompat:appcompat:1.4.2'
 }

@@ -59,6 +59,8 @@ public class GridMultiActivity extends BaseActivity<ActivityBaseBinding> {
                 return 1;
             }
         });
+        gridLayoutManager.setReverseLayout(true);
+//        gridLayoutManager.setReverseLayout(false);
         //务必先调用setLayoutManager
         binding.recyclerView.setLayoutManager(gridLayoutManager);
         binding.recyclerView.setAdapter(adapter);
@@ -174,10 +176,6 @@ public class GridMultiActivity extends BaseActivity<ActivityBaseBinding> {
 //            dataList2.add(new ChatListBean());
 //        }
 //        adapter.setNewData(dataList2);
-
-        //添加数据:
-        adapter.addData("分组五");
-        adapter.addData(new ChatListBean());
 
         //移除数据:
 //        adapter.remove(adapter.getItemCount() - 1);

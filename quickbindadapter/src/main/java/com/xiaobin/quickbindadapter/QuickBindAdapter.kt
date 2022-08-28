@@ -1,6 +1,7 @@
 package com.xiaobin.quickbindadapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,12 +20,13 @@ import kotlin.math.abs
  * @author 小斌
  * @data 2019/7/10
  */
-open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter<BindHolder>() {
+open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
     private val TAG = "QuickBindAdapter"
     private val EMPTY_VIEW_TYPE = -1
     private val LOAD_MORE_TYPE = -2
     private val NONE_VIEW_TYPE = -3
+    private var mContext: Context? = null
 
     //数据类型集合
     private val clazzList: MutableList<Class<*>> = ArrayList()
@@ -42,55 +44,53 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
     /**
      * 加载更多item样式
      */
-    var loadMoreItemView: BaseLoadView<*>? = null
+    private var loadMoreItemView: BaseLoadView<*>? = null
 
     /**
      * 空数据占位图
      */
-    var emptyView: BasePlaceholder<*, *, *>? = null
+    private var emptyView: BasePlaceholder<*, *, *>? = null
 
     /**
      * 生命周期，目前的想法只是给dataBinding提供一些用处
      */
-    var lifecycleOwner: LifecycleOwner? = null
+    private var lifecycleOwner: LifecycleOwner? = null
 
     /**
      * 是否允许列表数据不满一页时触发自动加载更多
      * 无论是否设置为true，当数据量少于1时不会触发
      */
-    var loadMoreWhenItemsNoFullScreen = true
+    private var loadMoreWhenItemsNoFullScreen = true
 
     /**
      * 获得全部item数据，不包含底部的加载更多item
      */
-    var listData: ItemData = ItemData()
-        private set
+    private var listData: ItemData = ItemData()
 
     /**
      * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
      */
-    var quickBind: QuickBind? = null
+    private var quickBind: QuickBind? = null
 
     /**
      * 设置加载更多监听
      * 如果没有配置自定义的加载更多样式，则初始化默认的
      */
-    var onLoadMoreListener: OnLoadMoreListener? = null
+    private var onLoadMoreListener: OnLoadMoreListener? = null
         set(value) {
             field = value
-            if (loadMoreItemView == null) {
-                loadMoreItemView = DefaultLoadView(context)
-            }
             setupScrollListener()
         }
-    var mRecyclerView: RecyclerView? = null
+    private var mRecyclerView: RecyclerView? = null
 
     private var isHasMore = true
 
     private val onScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            if (dy < 0 || mRecyclerView!!.layoutManager == null || dataCount == 0) {
+            val reverseLayout = checkIsReverseLayout()
+            val notNeedLoadMore = (reverseLayout && dy > 0) || (!reverseLayout && dy < 0)
+            if (notNeedLoadMore || mRecyclerView!!.layoutManager == null || dataCount == 0) {
                 //下拉,没有layoutManger,无数据时不触发
                 return
             }
@@ -112,43 +112,64 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
             }
             if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
                 if (dataCount == 0) {
-                    if (loadMoreItemView != null) {
-                        loadMoreItemView!!.isNoMoreData()
+                    if (loadMoreItemView == null && mContext != null) {
+                        loadMoreItemView = DefaultLoadView(mContext!!)
                     }
+                    loadMoreItemView?.isNoMoreData()
                     return
                 }
                 //触发加载更多
-                if (onLoadMoreListener != null && isHasMore && loadMoreItemView != null) {
-                    if (loadMoreItemView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
-                        onLoadMoreListener!!.onLoadMore()
+                if (onLoadMoreListener != null && isHasMore) {
+                    if (loadMoreItemView?.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
+                        onLoadMoreListener?.onLoadMore()
                     }
-                    loadMoreItemView!!.isLoading()
+                    loadMoreItemView?.isLoading()
                 }
             }
         }
     }
 
-    constructor(context: Context, lifecycleOwner: LifecycleOwner?) : this(context) {
+    constructor(lifecycleOwner: LifecycleOwner?) : this() {
         this.lifecycleOwner = lifecycleOwner
     }
 
     override fun getItemCount(): Int {
-        if (emptyView != null && listData.size == 0) {
+        if (onLoadMoreListener != null && listData.isEmpty()) {
             return 1
         }
-        return if (onLoadMoreListener != null && listData.size != 0) {
+        return if (onLoadMoreListener != null && listData.isNotEmpty()) {
             //如果真数据大于0，并且有设置加载更多
             listData.size + 1
-        } else listData.size
+        } else {
+            listData.size
+        }
+    }
+
+    private fun checkIsReverseLayout(): Boolean {
+        return when (val layoutManager = mRecyclerView?.layoutManager) {
+            is LinearLayoutManager -> {
+                layoutManager.reverseLayout
+            }
+            is GridLayoutManager -> {
+                layoutManager.reverseLayout
+            }
+            is StaggeredGridLayoutManager -> {
+                layoutManager.reverseLayout
+            }
+            else -> false
+        }
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (listData.size > 0 && onLoadMoreListener != null && position == itemCount - 1) {
+        if (listData.isNotEmpty() && onLoadMoreListener != null && position >= listData.size) {
             //如果设置了加载更多功能，则最后一个为加载更多的布局
             return LOAD_MORE_TYPE
         }
-        if (emptyView != null && listData.size == 0) {
+        if (emptyView != null && listData.isEmpty()) {
             return EMPTY_VIEW_TYPE
+        }
+        if (position < 0) {
+            return NONE_VIEW_TYPE
         }
         //得到itemData的index，然后得到对应的数据
         //判断数据类型集合中是否有这个数据的类型
@@ -157,51 +178,51 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
         return if (typeIndex >= 0) {
             //如果有这个类型，则返回这个类型所在集合的index
             typeIndex
-        } else NONE_VIEW_TYPE
-        //如果没有这个类型，则返回 NULL_VIEW_TYPE
+        } else {
+            //如果没有这个类型，则返回 NULL_VIEW_TYPE
+            NONE_VIEW_TYPE
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BindHolder {
         //根据getItemViewType方法返回的viewType，判断需要用哪种布局
         if (viewType == LOAD_MORE_TYPE) {
             //加载更多布局
-            return if (loadMoreItemView != null) {
-                loadMoreItemView!!.createViewHolder(parent, lifecycleOwner)
-            } else {
-                BindHolder(View(parent.context))
+            if (loadMoreItemView == null) {
+                loadMoreItemView = DefaultLoadView(mContext!!)
             }
+            return loadMoreItemView!!.createViewHolder(parent, lifecycleOwner)
         } else if (viewType >= 0) {
             val mClass = clazzList[viewType]
-            return if (StaggeredFullSpan::class.java.isAssignableFrom(mClass)) {
-                FullSpanBindHolder(
+            val layoutId = layoutIds[mClass]!!
+            if (StaggeredFullSpan::class.java.isAssignableFrom(mClass)) {
+                return FullSpanBindHolder(
                     DataBindingUtil.inflate(
                         LayoutInflater.from(parent.context),
-                        layoutIds[mClass]!!, parent, false
-                    ),
-                    lifecycleOwner
-                )
-            } else {
-                BindHolder(
-                    DataBindingUtil.inflate(
-                        LayoutInflater.from(parent.context),
-                        layoutIds[mClass]!!, parent, false
+                        layoutId, parent, false
                     ),
                     lifecycleOwner
                 )
             }
-
-        } else if (listData.size == 0) {
+            return BindHolder(
+                DataBindingUtil.inflate(
+                    LayoutInflater.from(parent.context),
+                    layoutId, parent, false
+                ),
+                lifecycleOwner
+            )
+        } else if (listData.isEmpty() && emptyView != null) {
             return emptyView!!.createViewHolder(parent, lifecycleOwner)
         }
         return BindHolder(View(parent.context))
     }
 
     override fun onBindViewHolder(holder: BindHolder, position: Int) {
-        if (listData.size == 0) return
+        if (listData.isEmpty()) return
         val itemType = holder.itemViewType
         if (itemType < 0) return
         val clz = clazzList[itemType]
-        val itemData = getItemData(position)!!
+        val itemData = getItemData(position) ?: return
         //item点击事件绑定
         if (onItemClickListener != null) {
             holder.itemView.setOnClickListener { view ->
@@ -236,7 +257,7 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
             }
         }
         if (variableIds.containsKey(clz)) {
-            holder.binding?.setVariable(variableIds[clz]!!, listData[position])
+            holder.binding?.setVariable(variableIds[clz]!!, itemData)
         }
         quickBind?.onBind(holder.binding!!, itemData, position)
         holder.binding?.executePendingBindings()
@@ -257,6 +278,7 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
+        mContext = recyclerView.context
         mRecyclerView = recyclerView
         refreshSpanSizeLookup()
         setupScrollListener()
@@ -352,14 +374,14 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
     /**
      * item事件
      */
-    var onItemClickListener: OnItemClickListener? = null
-    var onItemLongClickListener: OnItemLongClickListener? = null
+    private var onItemClickListener: OnItemClickListener? = null
+    private var onItemLongClickListener: OnItemLongClickListener? = null
 
     /**
      * 子控件事件
      */
-    var onItemChildClickListener: OnItemClickListener? = null
-    var onItemChildLongClickListener: OnItemLongClickListener? = null
+    private var onItemChildClickListener: OnItemClickListener? = null
+    private var onItemChildLongClickListener: OnItemLongClickListener? = null
 
     /**
      * 点击事件
@@ -388,6 +410,27 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
     }
 
     /******************************  **************************************/
+
+    /**
+     * 获得整个列表的数据
+     */
+    fun getListData(): ItemData {
+        return listData
+    }
+
+    /**
+     * 获得空数据占位图控制器
+     */
+    fun getEmptyView(): BasePlaceholder<*, *, *>? {
+        return emptyView
+    }
+
+    /**
+     * 获得拉到低之后的加载更多布局
+     */
+    fun getLoadMoreView(): BaseLoadView<*>? {
+        return loadMoreItemView
+    }
 
     /**
      * 加载更多完成
@@ -791,6 +834,9 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
      * @return 这个位置的数据
      */
     fun getItemData(position: Int): Any? {
+        if (position < 0 || position >= listData.size) {
+            return null
+        }
         return listData[position]
     }
 
@@ -804,13 +850,99 @@ open class QuickBindAdapter(private val context: Context) : RecyclerView.Adapter
 
     /**
      * 展示加载中页面
-     * @param clearDatas 是否清空已有数据，如果不清空，则不会显示加载中页面
+     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示加载中页面
      */
-    fun showLoadPage(clearDatas: Boolean = false) {
-        if (clearDatas) {
+    fun showLoadPage(clearData: Boolean = false) {
+        if (clearData) {
             listData.clear()
             notifyDataSetChanged()
         }
         emptyView?.setPlaceholderAction(PlaceholderAction.ShowLoadingPage)
+    }
+
+    /**
+     * 展示错误页面
+     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示错误页面
+     */
+    fun showErrorPage(clearData: Boolean = false) {
+        if (clearData) {
+            listData.clear()
+            notifyDataSetChanged()
+        }
+        emptyView?.setPlaceholderAction(PlaceholderAction.ShowErrPage)
+    }
+
+    /**
+     * 展示空数据页面
+     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示空数据页面
+     */
+    fun showEmptyPage(clearData: Boolean = false) {
+        if (clearData) {
+            listData.clear()
+            notifyDataSetChanged()
+        }
+        emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+    }
+
+    fun canLoadMoreWhenPageNotFull(canLoadWhenPageNotFull: Boolean): QuickBindAdapter {
+        loadMoreWhenItemsNoFullScreen = canLoadWhenPageNotFull
+        return this
+    }
+
+    fun setQuickBind(bind: QuickBind?): QuickBindAdapter {
+        quickBind = bind
+        return this
+    }
+
+    fun setEmptyView(view: BasePlaceholder<*, *, *>?): QuickBindAdapter {
+        emptyView = view
+        return this
+    }
+
+    fun setLoadMoreItemView(view: BaseLoadView<*>?): QuickBindAdapter {
+        loadMoreItemView = view
+        return this
+    }
+
+    fun setOnLoadMoreListener(loadMoreListener: OnLoadMoreListener?): QuickBindAdapter {
+        onLoadMoreListener = loadMoreListener
+        return this
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener): QuickBindAdapter {
+        onItemClickListener = listener
+        return this
+    }
+
+    fun setOnItemLongClickListener(listener: OnItemLongClickListener): QuickBindAdapter {
+        onItemLongClickListener = listener
+        return this
+    }
+
+    fun setOnItemChildClickListener(listener: OnItemClickListener): QuickBindAdapter {
+        onItemChildClickListener = listener
+        return this
+    }
+
+    fun setOnItemChildLongClickListener(listener: OnItemLongClickListener): QuickBindAdapter {
+        onItemChildLongClickListener = listener
+        return this
+    }
+
+    fun setLoadMoreListener(listener: OnItemLongClickListener): QuickBindAdapter {
+        onItemChildLongClickListener = listener
+        return this
+    }
+
+    companion object {
+
+        fun create(): QuickBindAdapter {
+            return QuickBindAdapter()
+        }
+
+        fun create(lifecycleOwner: LifecycleOwner): QuickBindAdapter {
+            return QuickBindAdapter(lifecycleOwner)
+        }
+
     }
 }

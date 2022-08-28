@@ -1,9 +1,9 @@
 package com.xiaobin.quickbindadapter
 
 import android.view.View
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 /**
  * @author 小斌
@@ -14,10 +14,15 @@ open class BindHolder : ViewHolder {
     var binding: ViewDataBinding? = null
         private set
 
-    constructor(binding: ViewDataBinding, lifecycleOwner: LifecycleOwner? = null) : super(binding.root) {
+    constructor(
+        binding: ViewDataBinding,
+        lifecycleOwner: LifecycleOwner? = null
+    ) : super(binding.root) {
         this.binding = binding
-        lifecycleOwner?.apply {
-            binding.lifecycleOwner = this
+        if (lifecycleOwner is LifecycleOwner) {
+            binding.lifecycleOwner = lifecycleOwner
+        } else {
+            binding.lifecycleOwner = null
         }
     }
 

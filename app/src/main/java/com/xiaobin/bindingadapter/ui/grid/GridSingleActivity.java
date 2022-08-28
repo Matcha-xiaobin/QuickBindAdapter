@@ -44,7 +44,9 @@ public class GridSingleActivity extends BaseActivity<ActivityBaseBinding> {
         //添加子控件点击事件
         adapter.addClicks(ChatListBean.class, R.id.iv_image, R.id.tv_name, R.id.tv_message);
 
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
+        gridLayoutManager.setReverseLayout(false);
+        binding.recyclerView.setLayoutManager(gridLayoutManager);
         binding.recyclerView.setAdapter(adapter);
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
         adapter.setQuickBind((binding, itemData, position) -> {

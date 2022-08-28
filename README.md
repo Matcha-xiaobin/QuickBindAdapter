@@ -19,7 +19,7 @@
    Step 2. Add the dependency
    
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:3.0.6'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:3.0.7'
     }
 
 ### 2.1.0开始API大量改动，请注意斟酌是否升级版本：
@@ -32,7 +32,6 @@
         > OnItemLongClickListener.onItemLongClick(adapter, view, position) -> OnItemLongClickListener.onItemLongClick(adapter, view, data, position)
         > OnItemChildClickListener.onItemLongClick(adapter, view, position) 已移除，用 OnItemClickListener 替代
         > OnItemChildLongClickListener.onItemLongClick(adapter, view, position) 已移除，用 OnItemLongClickListener 替代
-        > QuickBindAdapter.Create() 已移除
         > setEmpty(view) 方法已修改，现在必须自己实现 BasePlaceholder() 或者使用 DefaultPlaceholder(context)
         > setLoadView(BaseLoadView) -> setLoadMoreItemView(BaseLoadView)
         > setCanLoadMoreWhenNoFullContent(boolean) -> setLoadMoreWhenItemsNoFullScreen(boolean)
@@ -46,7 +45,7 @@
 
 ### 在代码中使用：
 
-    QuickBindAdapter adapter = new QuickBindAdapter(context);
+    QuickBindAdapter adapter = new QuickBindAdapter();
     adapter.bind()
     adapter.setxxx()
     ...
