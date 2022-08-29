@@ -20,7 +20,7 @@ Step 1. Add it in your root build.gradle at the end of repositories
 Step 2. Add the dependency
 
     dependencies {
-        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:3.0.7'
+        implementation 'com.github.Matchas-xiaobin:QuickBindAdapter:3.0.8'
     }
 
 ### API多次大量改动，如果已经在使用老版本了，请注意斟酌是否升级版本：
