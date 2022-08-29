@@ -4,9 +4,16 @@
 
 使用Databinding简单快速实现RecyclerView多布局Adapter。只需要用这一个Adapter就够了。
 
+### Demo的首页
 ![目录](ScreenShot/S20829-17471726.png "Demo的首页")
+
+### 列表数据是空的时候显示的占位图
 ![空列表占位布局](ScreenShot/S20829-17472742.png "列表数据是空的时候显示的占位图")
+
+### GridLayoutManager多种布局展示
 ![网格流多种布局展示](ScreenShot/S20829-17474084.png "GridLayoutManager多种布局展示")
+
+### StaggeredLayoutManager多种布局展示
 ![瀑布流多种布局展示](ScreenShot/S20829-17475072.png "StaggeredLayoutManager多种布局展示")
 
 ## 在项目中引用
