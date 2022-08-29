@@ -2,6 +2,7 @@ package com.xiaobin.bindingadapter.ui;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -10,8 +11,9 @@ import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityEmptyBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
-import com.xiaobin.quickbindadapter.DefaultPlaceholder;
-import com.xiaobin.quickbindadapter.PlaceholderAction;
+import com.xiaobin.bindingadapter.ui.pageState.MyEmptyPageView;
+import com.xiaobin.quickbindadapter.DefaultEmptyStatePage;
+import com.xiaobin.quickbindadapter.PageState;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 /**
@@ -39,13 +41,12 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        PlaceholderAction.ShowEmptyPage showEmptyPage = PlaceholderAction.ShowEmptyPage.INSTANCE;
         //修改默认初始显示无数据， 不修改则是加载中
-        DefaultPlaceholder defaultPlaceholder = new DefaultPlaceholder(this);
-        defaultPlaceholder.setDefaultPlaceholderPage(showEmptyPage);
+        DefaultEmptyStatePage defaultEmptyStatePage = new DefaultEmptyStatePage(this);
+        defaultEmptyStatePage.setDefaultPage(PageState.Empty);
         bindAdapter = QuickBindAdapter.Companion.create()
                 .bind(ChatListBean.class, R.layout.item_linear, BR.data)
-                .setEmptyView(defaultPlaceholder);//设置默认的无数据时占位布局
+                .setEmptyView(defaultEmptyStatePage);//设置默认的无数据时占位布局
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setAdapter(bindAdapter);
@@ -63,16 +64,24 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
     }
 
     public void loadPage(View view) {
-        if (bindAdapter.getEmptyView() != null) {
-            bindAdapter.removeAll();
-            bindAdapter.getEmptyView().setPlaceholderAction(PlaceholderAction.ShowLoadingPage.INSTANCE);
-        }
+        bindAdapter.showLoadPage(true);
     }
 
     public void errPage(View view) {
-        if (bindAdapter.getEmptyView() != null) {
-            bindAdapter.removeAll();
-            bindAdapter.getEmptyView().setPlaceholderAction(PlaceholderAction.ShowErrPage.INSTANCE);
-        }
+        bindAdapter.showErrorPage(true);
+    }
+
+    public void myPageState(View view) {
+        Toast.makeText(this, "使用自定义布局", Toast.LENGTH_SHORT).show();
+        bindAdapter.setEmptyView(new MyEmptyPageView());
+        //在上面initView中，已经设置了默认的布局，所以这里可以重新设置一下adapter达到这个布局的目的
+        binding.recyclerView.setAdapter(bindAdapter);
+    }
+
+    public void defaultPageState(View view) {
+        Toast.makeText(this, "使用默认布局", Toast.LENGTH_SHORT).show();
+        bindAdapter.setEmptyView(new DefaultEmptyStatePage(this));
+        //在上面initView中，已经设置了默认的布局，所以这里可以重新设置一下adapter达到这个布局的目的
+        binding.recyclerView.setAdapter(bindAdapter);
     }
 }

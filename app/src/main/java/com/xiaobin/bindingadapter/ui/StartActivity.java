@@ -19,8 +19,8 @@ import com.xiaobin.bindingadapter.ui.staggered.StaggeredMultiActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredSingleActivity;
 import com.xiaobin.quickbindadapter.DefaultLoadView;
 import com.xiaobin.quickbindadapter.DefaultLoadViewConfigsBean;
-import com.xiaobin.quickbindadapter.DefaultPlaceholder;
-import com.xiaobin.quickbindadapter.DefaultPlaceholderConfigsBean;
+import com.xiaobin.quickbindadapter.DefaultEmptyStatePage;
+import com.xiaobin.quickbindadapter.DefaultPlacePageConfigsBean;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 import java.util.Iterator;
@@ -66,8 +66,8 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
          * 同理配置全局占位页
          * 仅对使用默认 占位页(DefaultPlaceholder) 控件生效
          */
-        DefaultPlaceholder.Companion.createGlobalConfig(() -> {
-            DefaultPlaceholderConfigsBean data = new DefaultPlaceholderConfigsBean();
+        DefaultEmptyStatePage.Companion.createGlobalConfig(() -> {
+            DefaultPlacePageConfigsBean data = new DefaultPlacePageConfigsBean();
             data.setEmptyText("似乎是空的");
             data.setErrorText("获取失败！\n请检查网络！");
             return data;
@@ -77,17 +77,26 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
 
         DefaultLoadView defaultLoadItem = new DefaultLoadView(this);
         defaultLoadItem.setNoMoreDataText("我滴任务完成啦~");
+        defaultLoadItem.setOnWaitLoadingText("快碰我，我要更多！~");
         defaultLoadItem.setOnFailedText("跟我玩鹰滴是吧！");
         defaultLoadItem.setOnLoadingText("客官请稍等片刻~");
         defaultLoadItem.setOnSuccessText("轻轻松松~");
         //如果不设置字体颜色，会应用全局配置里的字体颜色。
 //        defaultLoadItem.setOnLoadingTextColor();
-        adapter.setLoadMoreItemView(defaultLoadItem);//设置默认的加载更多布局
-
-        adapter.setEmptyView(new DefaultPlaceholder(this));
-        adapter.bind(String.class, R.layout.item_start, BR.data);//绑定数据类型和布局
+        //设置默认的加载更多布局
+        adapter.setLoadMoreItemView(defaultLoadItem);
+        //是否启用 触底 自动触发 加载更多
+        adapter.setAutoLoadMore(true);
+        //是否启用 列表内容没有充满布局时 触发 加载更多
+        //setAutoLoadMore(false)的时候，即使enableLoadMoreWhenPageNotFull(true)也不会生效
+        adapter.enableLoadMoreWhenPageNotFull(true);
+        //设置默认的 空列表 占位布局控制器
+        adapter.setEmptyView(new DefaultEmptyStatePage(this));
+        //绑定数据类型和对应的布局
+        adapter.bind(String.class, R.layout.item_start, BR.data);
+        //使用额外的item内容处理
         adapter.setQuickBind((binding, itemData, position) -> {
-            //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
+            //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickBind 接口，然后传入这里
             // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
             //如果是多布局，则需要做下判断：
             if (binding instanceof ItemStartBinding) {
@@ -98,30 +107,37 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
                 // R.layout.item_start 类型布局
             }
         });
+        //绑定列表item的点击事件
         adapter.setOnItemClickListener((adapter1, view, data, position) -> {
-            //绑定item的点击事件
             Intent intent = new Intent();
             Class<?> mClass;
             switch (position) {
                 case 1:
+                    //点击了 LinearLayout多布局 + 加载更多 这个item
                     mClass = LinearMultiActivity.class;
                     break;
                 case 2:
+                    //点击了 GridLayout单布局 这个item
                     mClass = GridSingleActivity.class;
                     break;
                 case 3:
+                    //点击了 GridLayout多布局 + 加载更多 这个item
                     mClass = GridMultiActivity.class;
                     break;
                 case 4:
+                    //点击了 StaggeredGridLayout单布局 这个item
                     mClass = StaggeredSingleActivity.class;
                     break;
                 case 5:
+                    //点击了 StaggeredGridLayout多布局 + 加载更多 这个item
                     mClass = StaggeredMultiActivity.class;
                     break;
                 case 6:
+                    //点击了 空数据占位布局 这个item
                     mClass = EmptyDemoActivity.class;
                     break;
                 default:
+                    //点击了 LinearLayout单布局 这个item
                     mClass = LinearSingleActivity.class;
                     break;
             }
@@ -139,15 +155,18 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
         linkedList.add("StaggeredGridLayout多布局 + 加载更多");
         linkedList.add("空数据占位布局");
         Iterator<String> iterator = linkedList.iterator();
+        //一秒后，添加一条数据
         binding.getRoot().postDelayed(() -> {
             adapter.addData(iterator.next());
         }, 1000);
 
         /**
-         * 配置加载更多监听，如果配置了这个，即使没有调用过adapter.setLoadView()方法，则自动使用默认的加载布局
-         * 等同于调用了adapter.setLoadView(adapter.getDefaultLoadItem());
+         * 配置加载更多监听，如果配置了这个，即使没有调用过adapter.setLoadMoreItemView()方法，则自动使用默认的加载布局
+         * 如果配置加载更多方法，等同于也调用了adapter.setLoadMoreItemView(new DefaultLoadView(this));
          */
-        adapter.setOnLoadMoreListener(() -> {
+//        adapter.setLoadMoreItemView(new DefaultLoadView(this));//设置加载更多的item样式
+        adapter.setOnLoadMoreListener(() -> {//设置加载更多监听，触发加载更多的时候，则会执行里面的内容
+            //每隔0.3s，增加一条数据
             binding.getRoot().postDelayed(() -> {
                 if (iterator.hasNext()) {
                     //建议是先调用loadMoreSuccess再设置数据
@@ -158,6 +177,7 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
                 }
             }, 300);
         });
+        //给列表绑定adapter适配器
         binding.recyclerView.setAdapter(adapter);
 
     }

@@ -64,6 +64,36 @@
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
+            android:id="@+id/tv_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/shap_button"
+            android:gravity="center"
+            android:onClick="myPageState"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="其它样式"
+            app:layout_constraintBottom_toTopOf="@id/tv_loading"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_switch_default"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/shap_button"
+            android:gravity="center"
+            android:onClick="defaultPageState"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="默认样式"
+            app:layout_constraintBottom_toBottomOf="@id/tv_switch"
+            app:layout_constraintTop_toTopOf="@id/tv_switch"
+            app:layout_constraintStart_toEndOf="@id/tv_switch" />
+
+        <TextView
             android:id="@+id/tv_err"
             android:layout_width="0dp"
             android:layout_height="40dp"

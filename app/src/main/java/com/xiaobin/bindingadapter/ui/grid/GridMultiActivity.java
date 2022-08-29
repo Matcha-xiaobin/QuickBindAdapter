@@ -59,8 +59,8 @@ public class GridMultiActivity extends BaseActivity<ActivityBaseBinding> {
                 return 1;
             }
         });
-        gridLayoutManager.setReverseLayout(true);
-//        gridLayoutManager.setReverseLayout(false);
+        //倒序排列
+//        gridLayoutManager.setReverseLayout(true);
         //务必先调用setLayoutManager
         binding.recyclerView.setLayoutManager(gridLayoutManager);
         binding.recyclerView.setAdapter(adapter);

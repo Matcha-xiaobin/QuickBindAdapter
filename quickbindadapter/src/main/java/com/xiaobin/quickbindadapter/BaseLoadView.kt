@@ -1,6 +1,7 @@
 package com.xiaobin.quickbindadapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
@@ -9,8 +10,10 @@ import androidx.lifecycle.LifecycleOwner
 abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
 
     enum class LoadMoreState {
-        LOADING, SUCCESS, FAILED, NO_MORE
+        LOADING, SUCCESS, FAILED, NO_MORE, WAIT_LOADING
     }
+
+    private var viewHolder: BindHolder? = null
 
     //加载更多
     var loadMoreState = LoadMoreState.SUCCESS
@@ -18,60 +21,85 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
 
     private var loadView: T? = null
 
-    fun createViewHolder(parent: ViewGroup, lifecycleOwner: LifecycleOwner? = null): BindHolder {
+    fun createViewHolder(
+        parent: ViewGroup,
+        lifecycleOwner: LifecycleOwner? = null,
+        onClickLoadMore: View.OnClickListener? = null
+    ): BindHolder {
+        if (viewHolder != null) return viewHolder!!
         loadView = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
             layoutId,
             parent, false
         )
         initView(loadView)
-        isNoMoreData()
-        return BindHolder(loadView!!, lifecycleOwner)
+        isLoadMoreSuccess()
+        loadView!!.root.setOnClickListener {
+            if (loadMoreState == LoadMoreState.NO_MORE ||
+                loadMoreState == LoadMoreState.LOADING ||
+                loadMoreState == LoadMoreState.SUCCESS ||
+                loadView == null
+            ) {
+                //加载中，加载结束并且没有更多数据时，不允许触发点击事件
+                return@setOnClickListener
+            }
+            onClickLoadMore?.onClick(it)
+        }
+        viewHolder = BindHolder(loadView!!, lifecycleOwner)
+        return viewHolder!!
     }
 
+    /**
+     * 变更为 等待用户点击加载更多 状态
+     * 禁止了自动加载更多的时候，才会调用这个方法
+     */
+    fun isWaitLoading() {
+        if (loadMoreState == LoadMoreState.WAIT_LOADING || loadView == null) return
+        loadMoreState = LoadMoreState.WAIT_LOADING
+        onStateChange(loadView!!, LoadMoreState.WAIT_LOADING)
+    }
+
+    /**
+     * 变更为 正在加载更多 状态
+     */
     fun isLoading() {
         if (loadMoreState == LoadMoreState.LOADING || loadView == null) return
         loadMoreState = LoadMoreState.LOADING
-        onLoading(loadView!!)
+        onStateChange(loadView!!, LoadMoreState.LOADING)
     }
 
+    /**
+     * 变更为 加载更多完成且无更多数据 状态
+     */
     fun isNoMoreData() {
         if (loadMoreState == LoadMoreState.NO_MORE || loadView == null) return
         loadMoreState = LoadMoreState.NO_MORE
-        onNoMoreData(loadView!!)
+        onStateChange(loadView!!, LoadMoreState.NO_MORE)
     }
 
+    /**
+     * 变更为 加载更多成功 状态
+     */
     fun isLoadMoreSuccess() {
         if (loadMoreState == LoadMoreState.SUCCESS || loadView == null) return
         loadMoreState = LoadMoreState.SUCCESS
-        onLoadSuccess(loadView!!)
+        onStateChange(loadView!!, LoadMoreState.SUCCESS)
     }
 
+    /**
+     * 变更为 加载更多失败了 状态
+     */
     fun isLoadMoreFailed() {
         if (loadMoreState == LoadMoreState.FAILED || loadView == null) return
         loadMoreState = LoadMoreState.FAILED
-        onLoadFailed(loadView!!)
+        onStateChange(loadView!!, LoadMoreState.FAILED)
     }
 
     protected abstract fun initView(loadView: T?)
 
     /**
-     * 正在加载更多
+     * 状态变化
      */
-    protected abstract fun onLoading(loadView: T)
+    protected abstract fun onStateChange(loadView: T, state: LoadMoreState)
 
-    /**
-     * 加载完成，没有更多
-     */
-    protected abstract fun onNoMoreData(loadView: T)
-
-    /**
-     * 加载成功
-     */
-    protected abstract fun onLoadSuccess(loadView: T)
-
-    /**
-     * 加载失败
-     */
-    protected abstract fun onLoadFailed(loadView: T)
 }

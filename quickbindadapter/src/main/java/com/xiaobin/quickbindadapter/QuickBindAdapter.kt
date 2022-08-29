@@ -1,7 +1,6 @@
 package com.xiaobin.quickbindadapter
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,7 +48,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 空数据占位图
      */
-    private var emptyView: BasePlaceholder<*, *, *>? = null
+    private var emptyView: BasePageStateView<*, *, *>? = null
 
     /**
      * 生命周期，目前的想法只是给dataBinding提供一些用处
@@ -60,7 +59,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 是否允许列表数据不满一页时触发自动加载更多
      * 无论是否设置为true，当数据量少于1时不会触发
      */
-    private var loadMoreWhenItemsNoFullScreen = true
+    private var enableLoadMoreWhenNoFull = true
+
+    /**
+     * 是否自动触发加载更多
+     */
+    private var autoLoadMore = true
 
     /**
      * 获得全部item数据，不包含底部的加载更多item
@@ -88,6 +92,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private val onScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
+            if (onLoadMoreListener == null) return
             val reverseLayout = checkIsReverseLayout()
             val notNeedLoadMore = (reverseLayout && dy > 0) || (!reverseLayout && dy < 0)
             if (notNeedLoadMore || mRecyclerView!!.layoutManager == null || dataCount == 0) {
@@ -118,11 +123,21 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                     loadMoreItemView?.isNoMoreData()
                     return
                 }
-                //触发加载更多
-                if (onLoadMoreListener != null && isHasMore) {
-                    if (loadMoreItemView?.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
-                        onLoadMoreListener?.onLoadMore()
+
+                val isOnLoading =
+                    loadMoreItemView?.loadMoreState == BaseLoadView.LoadMoreState.LOADING
+                if (!isOnLoading && isHasMore) {
+                    if (!autoLoadMore) {
+                        //不允许自动加载更多，则改变状态为等待用户点击加载更多
+                        loadMoreItemView?.isWaitLoading()
+                        return
                     }
+                    //如果rv不可滑动，并且不允许没满屏加载更多，则直接return
+                    if (!enableLoadMoreWhenNoFull) {
+                        if (!checkRvCanScroll()) return
+                    }
+                    //触发加载更多
+                    onLoadMoreListener?.onLoadMore()
                     loadMoreItemView?.isLoading()
                 }
             }
@@ -134,7 +149,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     override fun getItemCount(): Int {
-        if (onLoadMoreListener != null && listData.isEmpty()) {
+        if (emptyView != null && listData.isEmpty()) {
             return 1
         }
         return if (onLoadMoreListener != null && listData.isNotEmpty()) {
@@ -191,7 +206,9 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             if (loadMoreItemView == null) {
                 loadMoreItemView = DefaultLoadView(mContext!!)
             }
-            return loadMoreItemView!!.createViewHolder(parent, lifecycleOwner)
+            return loadMoreItemView!!.createViewHolder(parent, lifecycleOwner) {
+                loadMore()
+            }
         } else if (viewType >= 0) {
             val mClass = clazzList[viewType]
             val layoutId = layoutIds[mClass]!!
@@ -280,6 +297,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         super.onAttachedToRecyclerView(recyclerView)
         mContext = recyclerView.context
         mRecyclerView = recyclerView
+        //不缓存这两种布局
+        val pool = recyclerView.recycledViewPool
+        pool.setMaxRecycledViews(EMPTY_VIEW_TYPE, 0)
+        pool.setMaxRecycledViews(LOAD_MORE_TYPE, 0)
+
         refreshSpanSizeLookup()
         setupScrollListener()
         checkLoadMoreState()
@@ -328,28 +350,34 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 检查RV是否可以滑动，如果不可滑动(视为数据没有占满一页的情况)，并且开启了不满一页也可触发加载更多
      * 则触发加载更多回调
+     *
+     * 如果可以滑动，说明item数量超出屏幕高度了，不需要这里做处理了
      */
     private fun checkLoadMoreState() {
+        var check = checkRvCanScroll()
+        if (check || onLoadMoreListener == null || listData.isEmpty()) return
         //逐步检查必要的参数，最后调用onLoadMore
-        var check = isHasMore
-                && loadMoreItemView != null
-                && dataCount > 0
-                && loadMoreWhenItemsNoFullScreen
-                && loadMoreItemView!!.loadMoreState != BaseLoadView.LoadMoreState.LOADING
-                && mRecyclerView != null
-                && mRecyclerView!!.layoutManager != null
-                //必须做这个判断，否则容易导致多次调用
-                && mRecyclerView!!.layoutManager!!.childCount == itemCount
+        val state = loadMoreItemView?.loadMoreState ?: BaseLoadView.LoadMoreState.LOADING
+        check = isHasMore
+                && state != BaseLoadView.LoadMoreState.LOADING
+                && mRecyclerView?.layoutManager?.childCount == itemCount
                 && getItemViewType(itemCount - 1) == LOAD_MORE_TYPE
-        if (!check) return
-        //检查RV是否可以滑动，如果不可滑动(视为数据没有占满一页的情况)
-        check = !mRecyclerView!!.canScrollHorizontally(1) ||
-                !mRecyclerView!!.canScrollHorizontally(-1) ||
-                !mRecyclerView!!.canScrollVertically(1) ||
-                !mRecyclerView!!.canScrollVertically(-1)
-        if (!check) return
-        loadMoreItemView!!.isLoading()
-        onLoadMoreListener!!.onLoadMore()
+        //如果不符合上述条件，或者禁止了不满一页自动加载，或者禁止了自动触发加载，则return
+        if (!check || !enableLoadMoreWhenNoFull) return
+        if (!autoLoadMore) {
+            loadMoreItemView?.isWaitLoading()
+        } else {
+            loadMoreItemView!!.isLoading()
+            onLoadMoreListener!!.onLoadMore()
+        }
+    }
+
+    private fun checkRvCanScroll(): Boolean {
+        if (mRecyclerView == null) return false
+        return mRecyclerView!!.canScrollHorizontally(1) ||
+                mRecyclerView!!.canScrollHorizontally(-1) ||
+                mRecyclerView!!.canScrollVertically(1) ||
+                mRecyclerView!!.canScrollVertically(-1)
     }
 
     /**
@@ -384,25 +412,6 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private var onItemChildLongClickListener: OnItemLongClickListener? = null
 
     /**
-     * 点击事件
-     */
-    interface OnItemClickListener {
-        fun onClick(adapter: QuickBindAdapter, view: View, data: Any, position: Int)
-    }
-
-    /**
-     * 长按事件
-     */
-    interface OnItemLongClickListener {
-        fun onLongClick(
-            adapter: QuickBindAdapter,
-            view: View,
-            data: Any,
-            position: Int
-        ): Boolean
-    }
-
-    /**
      * 加载更多
      */
     interface OnLoadMoreListener {
@@ -421,12 +430,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 获得空数据占位图控制器
      */
-    fun getEmptyView(): BasePlaceholder<*, *, *>? {
+    fun getEmptyView(): BasePageStateView<*, *, *>? {
         return emptyView
     }
 
     /**
-     * 获得拉到低之后的加载更多布局
+     * 获得拉到底之后显示的加载更多布局
      */
     fun getLoadMoreView(): BaseLoadView<*>? {
         return loadMoreItemView
@@ -447,6 +456,16 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (dataCount == 0 || loadMoreItemView == null) return
         isHasMore = false
         loadMoreItemView!!.isNoMoreData()
+    }
+
+    /**
+     * 现在，立刻，马上，加载更多！
+     */
+    fun loadMore() {
+        if (loadMoreItemView?.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
+            onLoadMoreListener?.onLoadMore()
+        }
+        loadMoreItemView?.isLoading()
     }
 
     /**
@@ -488,7 +507,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = listData.size != 0
         notifyDataSetChanged()
         if (listData.isEmpty()) {
-            emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+            emptyView?.setPageState(PageState.Empty)
         } else {
             checkLoadMoreState()
         }
@@ -507,7 +526,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = listData.size != 0
         notifyDataSetChanged()
         if (listData.isEmpty()) {
-            emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+            emptyView?.setPageState(PageState.Empty)
         } else {
             checkLoadMoreState()
         }
@@ -561,6 +580,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      */
     fun addData(data: Any) {
         listData.add(data)
+        isHasMore = true
         notifyItemInserted(listData.size)
         compatibilityDataSizeChanged(1)
         checkLoadMoreState()
@@ -588,6 +608,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      */
     fun insertData(index: Int, data: Any) {
         listData.add(index, data)
+        isHasMore = true
         notifyItemInserted(index)
         notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(1)
@@ -616,6 +637,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      */
     fun insertDatas(index: Int, datas: ItemData) {
         this.listData.addAll(index, datas)
+        isHasMore = true
         notifyItemRangeChanged(index, datas.size - index)
         compatibilityDataSizeChanged(datas.size)
         checkLoadMoreState()
@@ -642,7 +664,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param index 插入位置
      */
     fun insertDatas(index: Int, datas: List<*>) {
-        this.listData.addAll(index, datas)
+        listData.addAll(index, datas)
+        isHasMore = true
         notifyItemRangeChanged(index, itemCount - index)
         compatibilityDataSizeChanged(datas.size)
         checkLoadMoreState()
@@ -668,7 +691,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      */
     fun addDatas(datas: List<*>): Int {
         val lastIndex = itemCount
-        this.listData.addAll(datas)
+        listData.addAll(datas)
+        isHasMore = true
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
         checkLoadMoreState()
@@ -696,6 +720,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun addDatas(datas: ItemData): Int {
         val lastIndex = itemCount
         this.listData.addAll(datas)
+        isHasMore = true
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
         checkLoadMoreState()
@@ -716,7 +741,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         compatibilityDataSizeChanged(0)
         notifyItemRangeChanged(position, listData.size - position)
         if (listData.isEmpty()) {
-            emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+            emptyView?.setPageState(PageState.Empty)
         } else {
             checkLoadMoreState()
         }
@@ -728,7 +753,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun removeAll() {
         listData.clear()
         notifyDataSetChanged()
-        emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+        emptyView?.setPageState(PageState.Empty)
     }
 
     /**
@@ -850,42 +875,80 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
     /**
      * 展示加载中页面
-     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示加载中页面
+     * 如果列表有数据的话，调用这个方法并不会展示 加载中 页面
+     * 但是在下一次展示占位图的时候，将会展示 加载中 页面
+     */
+    fun showLoadPage() {
+        showLoadPage(false)
+    }
+
+    /**
+     * 展示加载中页面
+     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示 加载中 页面
      */
     fun showLoadPage(clearData: Boolean = false) {
         if (clearData) {
             listData.clear()
             notifyDataSetChanged()
         }
-        emptyView?.setPlaceholderAction(PlaceholderAction.ShowLoadingPage)
+        emptyView?.setPageState(PageState.Loading)
     }
 
     /**
-     * 展示错误页面
-     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示错误页面
+     * 展示 加载错误 页面
+     * 如果列表有数据的话，调用这个方法并不会展示 加载错误 页面
+     * 但是在下一次展示占位图的时候，将会展示 加载错误 页面
+     */
+    fun showErrorPage() {
+        showErrorPage(false)
+    }
+
+    /**
+     * 展示 加载错误 页面
+     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示 加载错误 页面
      */
     fun showErrorPage(clearData: Boolean = false) {
         if (clearData) {
             listData.clear()
             notifyDataSetChanged()
         }
-        emptyView?.setPlaceholderAction(PlaceholderAction.ShowErrPage)
+        emptyView?.setPageState(PageState.Error)
     }
 
     /**
-     * 展示空数据页面
-     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示空数据页面
+     * 展示 空数据 页面
+     * 如果列表有数据的话，调用这个方法并不会展示 空数据 页面
+     * 但是在下一次展示占位图的时候，将会展示 空数据 页面
+     */
+    fun showEmptyPage() {
+        showEmptyPage(false)
+    }
+
+    /**
+     * 展示 空数据 页面
+     * @param clearData 是否清空已有数据，如果不清空，并且listData大小不为0，则不会显示 空数据 页面
      */
     fun showEmptyPage(clearData: Boolean = false) {
         if (clearData) {
             listData.clear()
             notifyDataSetChanged()
         }
-        emptyView?.setPlaceholderAction(PlaceholderAction.ShowEmptyPage)
+        emptyView?.setPageState(PageState.Empty)
     }
 
-    fun canLoadMoreWhenPageNotFull(canLoadWhenPageNotFull: Boolean): QuickBindAdapter {
-        loadMoreWhenItemsNoFullScreen = canLoadWhenPageNotFull
+    /**
+     * 设置是否触底自动触发加载更多
+     */
+    fun setAutoLoadMore(enable: Boolean) {
+        autoLoadMore = enable
+    }
+
+    /**
+     * 设置是否开启 当列表数据没有充满rv的情况下，也自动加载更多
+     * 如果关闭了触底自动加载更多，那么这个方法将不在起作用
+     */
+    fun enableLoadMoreWhenPageNotFull(canLoadWhenPageNotFull: Boolean): QuickBindAdapter {
+        enableLoadMoreWhenNoFull = canLoadWhenPageNotFull
         return this
     }
 
@@ -894,8 +957,25 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         return this
     }
 
-    fun setEmptyView(view: BasePlaceholder<*, *, *>?): QuickBindAdapter {
+    fun setEmptyView(view: BasePageStateView<*, *, *>?): QuickBindAdapter {
         emptyView = view
+        return this
+    }
+
+    /**
+     * 使用默认的空列表占位布局控制器
+     */
+    fun setEmptyView(context: Context): QuickBindAdapter {
+        return setEmptyView(context, PageState.Loading)
+    }
+
+    /**
+     * 使用默认的空列表占位布局控制器
+     */
+    fun setEmptyView(context: Context, defaultPageState: PageState): QuickBindAdapter {
+        emptyView = DefaultEmptyStatePage(context).apply {
+            setDefaultPage(defaultPageState)
+        }
         return this
     }
 

@@ -3,11 +3,9 @@ package com.xiaobin.quickbindadapter
 import android.content.Context
 import android.graphics.Color
 import androidx.annotation.ColorInt
-import com.xiaobin.quickbindadapter.databinding.LayoutPageEmptyBinding
-import com.xiaobin.quickbindadapter.databinding.LayoutPageErrorBinding
-import com.xiaobin.quickbindadapter.databinding.LayoutPageLoadingBinding
+import com.xiaobin.quickbindadapter.databinding.*
 
-class DefaultPlaceholderConfigsBean : Cloneable {
+class DefaultPlacePageConfigsBean : Cloneable {
     var emptyText: String = ""
     var errorText: String = ""
 
@@ -17,45 +15,45 @@ class DefaultPlaceholderConfigsBean : Cloneable {
     @ColorInt
     var errorTextColor: Int = Color.RED
 
-    public override fun clone(): DefaultPlaceholderConfigsBean {
+    public override fun clone(): DefaultPlacePageConfigsBean {
         return try {
-            return super.clone() as? DefaultPlaceholderConfigsBean
-                ?: DefaultPlaceholderConfigsBean()
+            return super.clone() as? DefaultPlacePageConfigsBean
+                ?: DefaultPlacePageConfigsBean()
         } catch (e: CloneNotSupportedException) {
-            DefaultPlaceholderConfigsBean()
+            DefaultPlacePageConfigsBean()
         }
     }
 }
 
 /**
- * 默认的加载更多布局
+ * 默认的 空数据 占位 布局
  */
-class DefaultPlaceholder(private val context: Context) :
-    BasePlaceholder<LayoutPageEmptyBinding, LayoutPageErrorBinding, LayoutPageLoadingBinding>(
-        R.layout.layout_page_empty,
-        R.layout.layout_page_error,
-        R.layout.layout_page_loading,
+class DefaultEmptyStatePage(private val context: Context) :
+    BasePageStateView<McXbLayoutPageEmptyBinding, McXbLayoutPageErrorBinding, McXbLayoutPageLoadingBinding>(
+        R.layout.mc_xb_layout_page_empty,
+        R.layout.mc_xb_layout_page_error,
+        R.layout.mc_xb_layout_page_loading,
     ) {
 
     companion object {
         //全局配置
-        var globalConfig: DefaultPlaceholderConfigsBean? = null
+        var globalConfig: DefaultPlacePageConfigsBean? = null
             private set
 
         //创建全局配置
-        fun createGlobalConfig(result: () -> DefaultPlaceholderConfigsBean) {
+        fun createGlobalConfig(result: () -> DefaultPlacePageConfigsBean) {
             globalConfig = result.invoke()
         }
 
         //创建全局配置
-        fun createGlobalConfig(result: DefaultPlaceholderConfigsBean) {
+        fun createGlobalConfig(result: DefaultPlacePageConfigsBean) {
             globalConfig = result
         }
     }
 
     init {
         if (globalConfig == null) {
-            createGlobalConfig(DefaultPlaceholderConfigsBean().apply {
+            createGlobalConfig(DefaultPlacePageConfigsBean().apply {
                 emptyText = context.getString(R.string.place_onEmpty)
                 errorText = context.getString(R.string.place_onError)
                 emptyTextColor = Color.LTGRAY
@@ -64,7 +62,7 @@ class DefaultPlaceholder(private val context: Context) :
         }
     }
 
-    private var config: DefaultPlaceholderConfigsBean = globalConfig!!.clone()
+    private var config: DefaultPlacePageConfigsBean = globalConfig!!.clone()
         set(value) {
             field = if (value === globalConfig) {
                 //如果是设置的全局配置，则克隆一份
@@ -74,27 +72,27 @@ class DefaultPlaceholder(private val context: Context) :
             }
         }
 
-    override fun onPageCreate(action: PlaceholderAction) {
+    override fun onPageCreate(action: PageState) {
         when (action) {
-            PlaceholderAction.ShowEmptyPage -> {
+            PageState.Empty -> {
                 emptyView?.apply {
                     tvEmpty.setTextColor(config.emptyTextColor)
                     tvEmpty.text = config.emptyText
                 }
 
             }
-            PlaceholderAction.ShowErrPage -> {
+            PageState.Error -> {
                 errorView?.apply {
                     tvError.setTextColor(config.errorTextColor)
                     tvError.text = config.errorText
                 }
             }
-            PlaceholderAction.ShowLoadingPage -> {
+            PageState.Loading -> {
             }
         }
     }
 
-    override fun onActionCall(action: PlaceholderAction) {
+    override fun onActionCall(action: PageState) {
     }
 
     fun setErrorPageTextColor(@ColorInt textColor: Int) {
