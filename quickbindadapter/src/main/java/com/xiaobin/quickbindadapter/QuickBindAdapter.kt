@@ -1009,11 +1009,6 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         return this
     }
 
-    fun setLoadMoreListener(listener: OnItemLongClickListener): QuickBindAdapter {
-        onItemChildLongClickListener = listener
-        return this
-    }
-
     companion object {
 
         fun create(): QuickBindAdapter {
