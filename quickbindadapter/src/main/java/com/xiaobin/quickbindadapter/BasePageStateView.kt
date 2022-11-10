@@ -149,6 +149,9 @@ abstract class BasePageStateView<
             PageState.Loading -> {
                 getLoadingPage()?.root
             }
+            PageState.Finish -> {
+                null
+            }
         }
         emptyPageDecorView?.flPlaceholder?.removeAllViews()
         view?.apply {
@@ -167,5 +170,5 @@ abstract class BasePageStateView<
 }
 
 enum class PageState {
-    Loading, Empty, Error
+    Loading, Empty, Error, Finish
 }

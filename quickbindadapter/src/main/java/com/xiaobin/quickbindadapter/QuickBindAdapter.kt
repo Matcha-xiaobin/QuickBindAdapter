@@ -418,6 +418,15 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         fun onLoadMore()
     }
 
+    private fun checkPageState() {
+        if (listData.isEmpty()) {
+            emptyView?.setPageState(PageState.Empty)
+        } else {
+            emptyView?.setPageState(PageState.Finish)
+            checkLoadMoreState()
+        }
+    }
+
     /******************************  **************************************/
 
     /**
@@ -506,11 +515,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
         isHasMore = listData.size != 0
         notifyDataSetChanged()
-        if (listData.isEmpty()) {
-            emptyView?.setPageState(PageState.Empty)
-        } else {
-            checkLoadMoreState()
-        }
+        checkPageState()
     }
 
     /**
@@ -525,11 +530,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
         isHasMore = listData.size != 0
         notifyDataSetChanged()
-        if (listData.isEmpty()) {
-            emptyView?.setPageState(PageState.Empty)
-        } else {
-            checkLoadMoreState()
-        }
+        checkPageState()
     }
 
     /**
@@ -583,7 +584,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = true
         notifyItemInserted(listData.size)
         compatibilityDataSizeChanged(1)
-        checkLoadMoreState()
+        checkPageState()
     }
 
     /**
@@ -612,7 +613,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         notifyItemInserted(index)
         notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(1)
-        checkLoadMoreState()
+        checkPageState()
     }
 
     /**
@@ -640,7 +641,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = true
         notifyItemRangeChanged(index, datas.size - index)
         compatibilityDataSizeChanged(datas.size)
-        checkLoadMoreState()
+        checkPageState()
     }
 
     /**
@@ -668,7 +669,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = true
         notifyItemRangeChanged(index, itemCount - index)
         compatibilityDataSizeChanged(datas.size)
-        checkLoadMoreState()
+        checkPageState()
     }
 
     /**
@@ -695,7 +696,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = true
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
-        checkLoadMoreState()
+        checkPageState()
         return lastIndex
     }
 
@@ -723,7 +724,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         isHasMore = true
         notifyItemRangeInserted(lastIndex - 1, datas.size)
         compatibilityDataSizeChanged(datas.size)
-        checkLoadMoreState()
+        checkPageState()
         return lastIndex
     }
 
@@ -743,7 +744,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (listData.isEmpty()) {
             emptyView?.setPageState(PageState.Empty)
         } else {
-            checkLoadMoreState()
+            checkPageState()
         }
     }
 
