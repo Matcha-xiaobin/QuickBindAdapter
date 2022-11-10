@@ -89,6 +89,8 @@ class DefaultEmptyStatePage(private val context: Context) :
             }
             PageState.Loading -> {
             }
+            PageState.Finish -> {
+            }
         }
     }
 
