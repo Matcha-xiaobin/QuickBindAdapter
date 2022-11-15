@@ -3,17 +3,16 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-kapt'
 }
-//apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.Matchas-xiaobin'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode 1
-        versionName "3.1.1"
+        versionName "3.1.2"
     }
 
     compileOptions {
@@ -34,6 +33,6 @@ android {
 
 dependencies {
     compileOnly 'androidx.recyclerview:recyclerview:1.2.1'
-    compileOnly "androidx.core:core-ktx:1.8.0"
-    compileOnly 'androidx.appcompat:appcompat:1.4.2'
+    compileOnly "androidx.core:core-ktx:1.9.0"
+    compileOnly 'androidx.appcompat:appcompat:1.5.1'
 }

@@ -16,8 +16,8 @@ import java.lang.Integer.min
 import kotlin.math.abs
 
 /**
- * @author 小斌
- * @data 2019/7/10
+ * @author xiao bin
+ * @data 2019/7/10 最后修订 2022/11/15
  */
 open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
@@ -27,14 +27,14 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private val NONE_VIEW_TYPE = -3
     private var mContext: Context? = null
 
-    //数据类型集合
-    private val clazzList: MutableList<Class<*>> = ArrayList()
-
     //databinding属性名集合
     private val variableIds: MutableMap<Class<*>, Int> = HashMap()
 
     //item布局集合
-    private val layoutIds: MutableMap<Class<*>, Int> = HashMap()
+    private val layoutType: MutableMap<Class<*>, Int> = HashMap()
+
+    //item类型集合
+    private val layoutClass: MutableMap<Int, Class<*>> = HashMap()
 
     //需要点击事件，长按事件监听的viewId集合
     private val clickListenerIds: MutableMap<Class<*>, List<Int>> = HashMap()
@@ -102,10 +102,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             var lastItemIndex = 0
             when (val layoutManager = mRecyclerView!!.layoutManager) {
                 is LinearLayoutManager -> {
-                    if (layoutManager.childCount < 1) return
-                    lastItemIndex = layoutManager.findLastVisibleItemPosition()
-                }
-                is GridLayoutManager -> {
+                    //GridLayoutManager同样走这个
                     if (layoutManager.childCount < 1) return
                     lastItemIndex = layoutManager.findLastVisibleItemPosition()
                 }
@@ -163,9 +160,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private fun checkIsReverseLayout(): Boolean {
         return when (val layoutManager = mRecyclerView?.layoutManager) {
             is LinearLayoutManager -> {
-                layoutManager.reverseLayout
-            }
-            is GridLayoutManager -> {
+                //GridLayoutManager同样走这个
                 layoutManager.reverseLayout
             }
             is StaggeredGridLayoutManager -> {
@@ -189,10 +184,10 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         //得到itemData的index，然后得到对应的数据
         //判断数据类型集合中是否有这个数据的类型
         val itemData = getItemData(position) ?: return NONE_VIEW_TYPE
-        val typeIndex = clazzList.indexOf(itemData.javaClass)
-        return if (typeIndex >= 0) {
+
+        return if (layoutType.containsKey(itemData.javaClass)) {
             //如果有这个类型，则返回这个类型所在集合的index
-            typeIndex
+            layoutType[itemData.javaClass]!!
         } else {
             //如果没有这个类型，则返回 NULL_VIEW_TYPE
             NONE_VIEW_TYPE
@@ -210,9 +205,9 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                 loadMore()
             }
         } else if (viewType >= 0) {
-            val mClass = clazzList[viewType]
-            val layoutId = layoutIds[mClass]!!
-            if (StaggeredFullSpan::class.java.isAssignableFrom(mClass)) {
+            val mClass = layoutClass[viewType]
+            val layoutId = layoutType[mClass]!!
+            if (StaggeredFullSpan::class.java.isAssignableFrom(mClass!!)) {
                 return FullSpanBindHolder(
                     DataBindingUtil.inflate(
                         LayoutInflater.from(parent.context),
@@ -238,7 +233,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (listData.isEmpty()) return
         val itemType = holder.itemViewType
         if (itemType < 0) return
-        val clz = clazzList[itemType]
+        val clz = layoutClass[itemType]
         val itemData = getItemData(position) ?: return
         //item点击事件绑定
         if (onItemClickListener != null) {
@@ -310,7 +305,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 刷新SpanSizeLookup
      */
-    fun refreshSpanSizeLookup() {
+    private fun refreshSpanSizeLookup() {
         mRecyclerView?.let { rv ->
             val layoutManager = rv.layoutManager
             if (layoutManager is GridLayoutManager) {
@@ -798,10 +793,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @return 这个对象
      */
     fun bind(clazz: Class<*>, @LayoutRes layoutId: Int, bindVariableId: Int): QuickBindAdapter {
-        if (!clazzList.contains(clazz)) {
-            clazzList.add(clazz)
-        }
-        layoutIds[clazz] = layoutId
+        layoutClass[layoutId] = clazz
+        layoutType[clazz] = layoutId
         variableIds[clazz] = bindVariableId
         return this
     }
@@ -814,10 +807,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @return 这个对象
      */
     fun bind(clazz: Class<*>, @LayoutRes layoutId: Int): QuickBindAdapter {
-        if (!clazzList.contains(clazz)) {
-            clazzList.add(clazz)
-        }
-        layoutIds[clazz] = layoutId
+        layoutClass[layoutId] = clazz
+        layoutType[clazz] = layoutId
         return this
     }
 
