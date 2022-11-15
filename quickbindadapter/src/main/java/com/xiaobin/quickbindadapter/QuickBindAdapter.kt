@@ -503,14 +503,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param data 全新数据
      */
     fun setNewData(data: List<*>?) {
-        val clearSize = listData.size
         listData.clear()
         data?.let {
             listData.addAll(it)
         }
         isHasMore = listData.size != 0
-        notifyItemRangeRemoved(0, clearSize)
-        notifyItemRangeInserted(0, listData.size)
+        notifyDataSetChanged()
         checkPageState()
     }
 
@@ -520,14 +518,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param data 全新数据
      */
     fun setNewData(data: ItemData?) {
-        val clearSize = listData.size
         listData.clear()
         data?.let {
             listData = it
         }
         isHasMore = listData.size != 0
-        notifyItemRangeRemoved(0, clearSize)
-        notifyItemRangeInserted(0, listData.size)
+        notifyDataSetChanged()
         checkPageState()
     }
 
@@ -581,7 +577,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun addData(data: Any) {
         listData.add(data)
         isHasMore = true
-        notifyItemInserted(listData.size)
+        notifyItemInserted(listData.size - 1)
         compatibilityDataSizeChanged(1)
         checkPageState()
     }
@@ -753,8 +749,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 清空数据
      */
     fun removeAll() {
-        notifyItemRangeRemoved(0, listData.size)
         listData.clear()
+        notifyDataSetChanged()
         emptyView?.setPageState(PageState.Empty)
     }
 
