@@ -56,20 +56,34 @@ public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.setOnItemClickListener((adapter1, view, data, position) -> {
             //item点击事件
             ChatListBean itemData = (ChatListBean) data;
-            Toast.makeText(this, "ID: " + itemData.getId(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Index: " + position + ", ID: " + itemData.getId(), Toast.LENGTH_SHORT).show();
         });
         adapter.setOnItemChildClickListener((adapter1, view, data, position) -> {
             //item上子控件 点击事件
             ChatListBean itemData = (ChatListBean) data;
             int viewId = view.getId();
             if (viewId == R.id.iv_image) {
-                Toast.makeText(this, "点击的是ID: " + itemData.getId() + " 的 头像", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "点击的是Index: " + position + ", ID: " + itemData.getId() + " 的 头像", Toast.LENGTH_SHORT).show();
             } else if (viewId == R.id.tv_name) {
-                Toast.makeText(this, "点击的是ID: " + itemData.getId() + " 的 名字", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "点击的是Index: " + position + ", ID: " + itemData.getId() + " 的 名字", Toast.LENGTH_SHORT).show();
             } else if (viewId == R.id.tv_message) {
-                Toast.makeText(this, "点击的是ID: " + itemData.getId() + " 的 消息", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "点击的是Index: " + position + ", ID: " + itemData.getId() + " 的 消息", Toast.LENGTH_SHORT).show();
             }
 
+        });
+        adapter.setOnItemLongClickListener((adapter1, view, data, position) -> {
+            //item长按事件，长按删除这个item
+//            ChatListBean itemData = (ChatListBean) data;
+//            adapter.remove(position);
+//            Toast.makeText(this, "删除index: " + position + ", ID:" + itemData.getId(), Toast.LENGTH_SHORT).show();
+
+            //item长按事件，在这个位置插入一个新的item
+            ChatListBean newData = new ChatListBean();
+            String s = String.valueOf(System.currentTimeMillis());
+            newData.setId(s.substring(s.length() -3));
+            adapter.insertData(position, newData);
+            Toast.makeText(this, "插入index: " + position + ", ID:" + newData.getId(), Toast.LENGTH_SHORT).show();
+            return true;
         });
 
         //数据方式一：

@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import java.lang.Integer.min
-import kotlin.math.abs
 
 /**
  * @author xiao bin
@@ -504,12 +503,14 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param data 全新数据
      */
     fun setNewData(data: List<*>?) {
+        val clearSize = listData.size
         listData.clear()
         data?.let {
             listData.addAll(it)
         }
         isHasMore = listData.size != 0
-        notifyDataSetChanged()
+        notifyItemRangeRemoved(0, clearSize)
+        notifyItemRangeInserted(0, listData.size)
         checkPageState()
     }
 
@@ -519,12 +520,14 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param data 全新数据
      */
     fun setNewData(data: ItemData?) {
+        val clearSize = listData.size
         listData.clear()
         data?.let {
             listData = it
         }
         isHasMore = listData.size != 0
-        notifyDataSetChanged()
+        notifyItemRangeRemoved(0, clearSize)
+        notifyItemRangeInserted(0, listData.size)
         checkPageState()
     }
 
@@ -550,9 +553,10 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun movedPositions(fromPosition: Int, toPosition: Int) {
         listData.add(toPosition, listData.removeAt(fromPosition)) //数据更换
         notifyItemMoved(fromPosition, toPosition)
+        val minIndex = min(fromPosition, toPosition)
         notifyItemRangeChanged(
-            min(fromPosition, toPosition),
-            abs(fromPosition - toPosition) + 1
+            minIndex,
+            listData.size - minIndex
         )
     }
 
@@ -605,7 +609,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun insertData(index: Int, data: Any) {
         listData.add(index, data)
         isHasMore = true
-        notifyItemInserted(index)
+        notifyItemRangeInserted(index, 1)
         notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(1)
         checkPageState()
@@ -632,9 +636,10 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param index 插入位置
      */
     fun insertDatas(index: Int, datas: ItemData) {
-        this.listData.addAll(index, datas)
+        listData.addAll(index, datas)
         isHasMore = true
-        notifyItemRangeChanged(index, datas.size - index)
+        notifyItemRangeInserted(index, datas.size)
+        notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(datas.size)
         checkPageState()
     }
@@ -662,7 +667,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun insertDatas(index: Int, datas: List<*>) {
         listData.addAll(index, datas)
         isHasMore = true
-        notifyItemRangeChanged(index, itemCount - index)
+        notifyItemRangeInserted(index, datas.size)
+        notifyItemRangeChanged(index, listData.size - index)
         compatibilityDataSizeChanged(datas.size)
         checkPageState()
     }
@@ -686,10 +692,10 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param datas 多个数据，添加到最后
      */
     fun addDatas(datas: List<*>): Int {
-        val lastIndex = itemCount
+        val lastIndex = listData.size
         listData.addAll(datas)
         isHasMore = true
-        notifyItemRangeInserted(lastIndex - 1, datas.size)
+        notifyItemRangeInserted(lastIndex, datas.size)
         compatibilityDataSizeChanged(datas.size)
         checkPageState()
         return lastIndex
@@ -714,10 +720,10 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param datas 多个数据，添加到最后
      */
     fun addDatas(datas: ItemData): Int {
-        val lastIndex = itemCount
+        val lastIndex = listData.size
         this.listData.addAll(datas)
         isHasMore = true
-        notifyItemRangeInserted(lastIndex - 1, datas.size)
+        notifyItemRangeInserted(lastIndex, datas.size)
         compatibilityDataSizeChanged(datas.size)
         checkPageState()
         return lastIndex
@@ -734,8 +740,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
         listData.removeAt(position)
         notifyItemRemoved(position)
-        compatibilityDataSizeChanged(0)
         notifyItemRangeChanged(position, listData.size - position)
+        compatibilityDataSizeChanged(0)
         if (listData.isEmpty()) {
             emptyView?.setPageState(PageState.Empty)
         } else {
@@ -747,8 +753,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 清空数据
      */
     fun removeAll() {
+        notifyItemRangeRemoved(0, listData.size)
         listData.clear()
-        notifyDataSetChanged()
         emptyView?.setPageState(PageState.Empty)
     }
 
