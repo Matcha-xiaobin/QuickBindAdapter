@@ -10,13 +10,13 @@ import androidx.lifecycle.LifecycleOwner
 abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
 
     enum class LoadMoreState {
-        LOADING, SUCCESS, FAILED, NO_MORE, WAIT_LOADING
+        LOADING, SUCCESS, FAILED, NO_MORE, WAIT_LOADING, NO_STATE
     }
 
     private var viewHolder: BindHolder? = null
 
     //加载更多
-    var loadMoreState = LoadMoreState.SUCCESS
+    var loadMoreState = LoadMoreState.NO_STATE
         private set
 
     private var loadView: T? = null
@@ -26,14 +26,12 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
         lifecycleOwner: LifecycleOwner? = null,
         onClickLoadMore: View.OnClickListener? = null
     ): BindHolder {
-        if (viewHolder != null) return viewHolder!!
         loadView = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
             layoutId,
             parent, false
         )
         initView(loadView)
-        isLoadMoreSuccess()
         loadView!!.root.setOnClickListener {
             if (loadMoreState == LoadMoreState.NO_MORE ||
                 loadMoreState == LoadMoreState.LOADING ||
@@ -45,6 +43,15 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
             }
             onClickLoadMore?.onClick(it)
         }
+        //恢复状态
+        when (loadMoreState) {
+            LoadMoreState.LOADING -> isLoading(true)
+            LoadMoreState.SUCCESS -> isLoadMoreSuccess(true)
+            LoadMoreState.FAILED -> isLoadMoreFailed(true)
+            LoadMoreState.NO_MORE -> isNoMoreData(true)
+            LoadMoreState.WAIT_LOADING -> isWaitLoading(true)
+            LoadMoreState.NO_STATE -> {}
+        }
         viewHolder = BindHolder(loadView!!, lifecycleOwner)
         return viewHolder!!
     }
@@ -53,8 +60,8 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
      * 变更为 等待用户点击加载更多 状态
      * 禁止了自动加载更多的时候，才会调用这个方法
      */
-    fun isWaitLoading() {
-        if (loadMoreState == LoadMoreState.WAIT_LOADING || loadView == null) return
+    fun isWaitLoading(ignore: Boolean = false) {
+        if (!ignore && (loadMoreState == LoadMoreState.WAIT_LOADING || loadView == null)) return
         loadMoreState = LoadMoreState.WAIT_LOADING
         onStateChange(loadView!!, LoadMoreState.WAIT_LOADING)
     }
@@ -62,8 +69,8 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     /**
      * 变更为 正在加载更多 状态
      */
-    fun isLoading() {
-        if (loadMoreState == LoadMoreState.LOADING || loadView == null) return
+    fun isLoading(ignore: Boolean = false) {
+        if (!ignore && (loadMoreState == LoadMoreState.LOADING || loadView == null)) return
         loadMoreState = LoadMoreState.LOADING
         onStateChange(loadView!!, LoadMoreState.LOADING)
     }
@@ -71,8 +78,8 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     /**
      * 变更为 加载更多完成且无更多数据 状态
      */
-    fun isNoMoreData() {
-        if (loadMoreState == LoadMoreState.NO_MORE || loadView == null) return
+    fun isNoMoreData(ignore: Boolean = false) {
+        if (!ignore && (loadMoreState == LoadMoreState.NO_MORE || loadView == null)) return
         loadMoreState = LoadMoreState.NO_MORE
         onStateChange(loadView!!, LoadMoreState.NO_MORE)
     }
@@ -80,8 +87,8 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     /**
      * 变更为 加载更多成功 状态
      */
-    fun isLoadMoreSuccess() {
-        if (loadMoreState == LoadMoreState.SUCCESS || loadView == null) return
+    fun isLoadMoreSuccess(ignore: Boolean = false) {
+        if (!ignore && (loadMoreState == LoadMoreState.SUCCESS || loadView == null)) return
         loadMoreState = LoadMoreState.SUCCESS
         onStateChange(loadView!!, LoadMoreState.SUCCESS)
     }
@@ -89,8 +96,8 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     /**
      * 变更为 加载更多失败了 状态
      */
-    fun isLoadMoreFailed() {
-        if (loadMoreState == LoadMoreState.FAILED || loadView == null) return
+    fun isLoadMoreFailed(ignore: Boolean = false) {
+        if (!ignore && (loadMoreState == LoadMoreState.FAILED || loadView == null)) return
         loadMoreState = LoadMoreState.FAILED
         onStateChange(loadView!!, LoadMoreState.FAILED)
     }

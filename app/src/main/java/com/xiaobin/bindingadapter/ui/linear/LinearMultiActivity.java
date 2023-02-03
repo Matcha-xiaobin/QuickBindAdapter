@@ -1,9 +1,13 @@
 package com.xiaobin.bindingadapter.ui.linear;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.xiaobin.bindingadapter.BR;
 import com.xiaobin.bindingadapter.R;
@@ -52,6 +56,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
         binding.recyclerView.setAdapter(adapter);
         adapter.setOnLoadMoreListener(() -> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
+            Log.d("TTTTT", "initView: 触发加载更多");
             binding.getRoot().postDelayed(() -> {
                 ItemData dataList = new ItemData();
                 ChatListBean item;
@@ -76,7 +81,8 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     item.setId(String.valueOf(i));
                     dataList.add(item);
                 }
-                adapter.addData(dataList, true);
+                adapter.addData(dataList);
+                Log.d("TTTTT", "initView: 拿到数据，调用addData()");
                 if (adapter.getItemCount() > 50) {
                     adapter.loadMoreSuccessAndNoMore();
                 } else {

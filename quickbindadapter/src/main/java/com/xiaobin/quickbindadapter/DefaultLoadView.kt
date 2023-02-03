@@ -138,7 +138,8 @@ class DefaultLoadView(private val context: Context) :
                 loadView.text = config.onLoadingText
                 loadView.tvText.setTextColor(config.onLoadingTextColor)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    loadView.progress.progressTintList = ColorStateList.valueOf(config.onLoadingTextColor)
+                    loadView.progress.progressTintList =
+                        ColorStateList.valueOf(config.onLoadingTextColor)
                 }
             }
             LoadMoreState.SUCCESS -> {
@@ -150,7 +151,8 @@ class DefaultLoadView(private val context: Context) :
                 loadView.text = text
                 loadView.tvText.setTextColor(config.onSuccessTextColor)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    loadView.progress.progressTintList = ColorStateList.valueOf(config.onSuccessTextColor)
+                    loadView.progress.progressTintList =
+                        ColorStateList.valueOf(config.onSuccessTextColor)
                 }
             }
             LoadMoreState.FAILED -> {
@@ -162,7 +164,8 @@ class DefaultLoadView(private val context: Context) :
                 loadView.text = text
                 loadView.tvText.setTextColor(config.onFailedTextColor)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    loadView.progress.progressTintList = ColorStateList.valueOf(config.onFailedTextColor)
+                    loadView.progress.progressTintList =
+                        ColorStateList.valueOf(config.onFailedTextColor)
                 }
             }
             LoadMoreState.NO_MORE -> {
@@ -174,7 +177,8 @@ class DefaultLoadView(private val context: Context) :
                 loadView.text = text
                 loadView.tvText.setTextColor(config.noMoreDataTextColor)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    loadView.progress.progressTintList = ColorStateList.valueOf(config.noMoreDataTextColor)
+                    loadView.progress.progressTintList =
+                        ColorStateList.valueOf(config.noMoreDataTextColor)
                 }
             }
             LoadMoreState.WAIT_LOADING -> {
@@ -190,6 +194,7 @@ class DefaultLoadView(private val context: Context) :
                         ColorStateList.valueOf(config.onWaitLoadingTextColor)
                 }
             }
+            else -> {}
         }
     }
 
