@@ -174,9 +174,9 @@ Step 2. Add the dependency
     adapter.addData(object, true);
                                                      
     添加多个到列表后面
-    adapter.addDatas(arrayList);
+    adapter.addData(arrayList);
     添加多个到列表后面，并且让新增的第一个处于可见范围
-    adapter.addDatas(arrayList, true);
+    adapter.addData(arrayList, true);
 
 ### 插入数据到某个位置API;
 

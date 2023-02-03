@@ -76,7 +76,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     item.setId(String.valueOf(i));
                     dataList.add(item);
                 }
-                adapter.addDatas(dataList, true);
+                adapter.addData(dataList, true);
                 if (adapter.getItemCount() > 50) {
                     adapter.loadMoreSuccessAndNoMore();
                 } else {

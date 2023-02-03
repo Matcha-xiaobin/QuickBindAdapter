@@ -1,10 +1,12 @@
 package com.xiaobin.quickbindadapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.IdRes
+import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleOwner
@@ -500,11 +502,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 设置新的数据
      *
-     * @param data 全新数据
+     * @param newData 全新数据
      */
-    fun setNewData(data: List<*>?) {
+    fun setNewData(newData: List<*>?) {
         listData.clear()
-        data?.let {
+        newData?.let {
             listData.addAll(it)
         }
         isHasMore = listData.size != 0
@@ -515,11 +517,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 设置新的数据
      *
-     * @param data 全新数据
+     * @param newData 全新数据
      */
-    fun setNewData(data: ItemData?) {
+    fun setNewData(newData: ItemData?) {
         listData.clear()
-        data?.let {
+        newData?.let {
             listData = it
         }
         isHasMore = listData.size != 0
@@ -533,8 +535,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param fromPosition 要移动的Item下标
      * @param toPosition   要移动到的位置下标
      */
-    fun movedPositions(fromPosition: Int, toPosition: Int, scrollToThis: Boolean) {
-        movedPositions(fromPosition, toPosition)
+    fun movePosition(
+        @IntRange(from = 0) fromPosition: Int,
+        @IntRange(from = 0) toPosition: Int,
+        scrollToThis: Boolean
+    ) {
+        movePosition(fromPosition, toPosition)
         if (scrollToThis) {
             smoothScrollToPosition(toPosition)
         }
@@ -546,51 +552,25 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param fromPosition 要移动的Item下标
      * @param toPosition   要移动到的位置下标
      */
-    fun movedPositions(fromPosition: Int, toPosition: Int) {
+    fun movePosition(@IntRange(from = 0) fromPosition: Int, @IntRange(from = 0) toPosition: Int) {
         listData.add(toPosition, listData.removeAt(fromPosition)) //数据更换
         notifyItemMoved(fromPosition, toPosition)
         val minIndex = min(fromPosition, toPosition)
         notifyItemRangeChanged(
             minIndex,
-            listData.size - minIndex
+            itemCount - minIndex
         )
     }
 
     /**
-     * 添加单个数据
-     *
-     * @param data 单个数据，添加到最后
-     * @param scrollToThis 是否需要滑动列表到这个位置
-     */
-    fun addData(data: Any, scrollToThis: Boolean) {
-        addData(data)
-        if (scrollToThis) {
-            smoothScrollToPosition(listData.indexOf(data))
-        }
-    }
-
-    /**
-     * 添加单个数据
-     *
-     * @param data 单个数据，添加到最后
-     */
-    fun addData(data: Any) {
-        listData.add(data)
-        isHasMore = true
-        notifyItemInserted(listData.size - 1)
-        compatibilityDataSizeChanged(1)
-        checkPageState()
-    }
-
-    /**
      * 插入单个数据
      *
      * @param index 插入位置
-     * @param data 单个数据，添加到最后
+     * @param newData 单个数据，添加到最后
      * @param scrollToThis 是否需要滑动列表到这个位置
      */
-    fun insertData(index: Int, data: Any, scrollToThis: Boolean) {
-        insertData(index, data)
+    fun insertData(@IntRange(from = 0) index: Int, newData: Any, scrollToThis: Boolean) {
+        insertData(index, newData)
         if (scrollToThis) {
             smoothScrollToPosition(index)
         }
@@ -600,13 +580,13 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 插入单个数据
      *
      * @param index 插入位置
-     * @param data  单个数据
+     * @param newData  单个数据
      */
-    fun insertData(index: Int, data: Any) {
-        listData.add(index, data)
+    fun insertData(@IntRange(from = 0) index: Int, newData: Any) {
+        listData.add(index, newData)
         isHasMore = true
         notifyItemRangeInserted(index, 1)
-        notifyItemRangeChanged(index, listData.size - index)
+        notifyItemRangeChanged(index, itemCount - index)
         compatibilityDataSizeChanged(1)
         checkPageState()
     }
@@ -615,11 +595,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 插入多个数据
      *
      * @param index 插入位置
-     * @param data 多个数据
+     * @param newData 多个数据
      * @param scrollToThis 是否需要滑动列表到这个位置
      */
-    fun insertDatas(index: Int, data: ItemData, scrollToThis: Boolean) {
-        insertDatas(index, data)
+    fun insertData(@IntRange(from = 0) index: Int, newData: Collection<*>, scrollToThis: Boolean) {
+        insertData(index, newData)
         if (scrollToThis) {
             smoothScrollToPosition(index)
         }
@@ -628,101 +608,76 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * 插入多个数据
      *
-     * @param datas 多个数据
+     * @param newData 多个数据
      * @param index 插入位置
      */
-    fun insertDatas(index: Int, datas: ItemData) {
-        listData.addAll(index, datas)
+    fun insertData(@IntRange(from = 0) index: Int, newData: Collection<*>) {
+        listData.addAll(index, newData)
         isHasMore = true
-        notifyItemRangeInserted(index, datas.size)
-        notifyItemRangeChanged(index, listData.size - index)
-        compatibilityDataSizeChanged(datas.size)
+        notifyItemRangeInserted(index, newData.size)
+        notifyItemRangeChanged(index, itemCount - index)
+        compatibilityDataSizeChanged(newData.size)
         checkPageState()
     }
 
     /**
-     * 插入多个数据
+     * 添加单个数据
      *
-     * @param index 插入位置
-     * @param data 多个数据
+     * @param newData 单个数据，添加到最后
      * @param scrollToThis 是否需要滑动列表到这个位置
      */
-    fun insertDatas(index: Int, data: List<*>, scrollToThis: Boolean) {
-        insertDatas(index, data)
+    fun addData(newData: Any, scrollToThis: Boolean) {
+        addData(newData)
         if (scrollToThis) {
-            smoothScrollToPosition(index)
+            smoothScrollToPosition(listData.indexOf(newData))
         }
     }
 
     /**
-     * 插入多个数据
+     * 添加单个数据
      *
-     * @param datas 多个数据
-     * @param index 插入位置
+     * @param newData 单个数据，添加到最后
      */
-    fun insertDatas(index: Int, datas: List<*>) {
-        listData.addAll(index, datas)
+    fun addData(newData: Any) {
+        listData.add(newData)
         isHasMore = true
-        notifyItemRangeInserted(index, datas.size)
-        notifyItemRangeChanged(index, listData.size - index)
-        compatibilityDataSizeChanged(datas.size)
-        checkPageState()
-    }
-
-    /**
-     * 插入多个数据
-     *
-     * @param data 多个数据
-     * @param scrollToThis 是否需要滑动列表到这个位置
-     */
-    fun addDatas(data: List<*>, scrollToThis: Boolean) {
-        val insertIndex = addDatas(data)
-        if (scrollToThis) {
-            smoothScrollToPosition(insertIndex)
+        notifyItemInserted(listData.size - 1)
+        if (itemCount > dataCount) {
+            notifyItemRangeChanged(dataCount, itemCount - dataCount)
         }
-    }
-
-    /**
-     * 添加数据
-     *
-     * @param datas 多个数据，添加到最后
-     */
-    fun addDatas(datas: List<*>): Int {
-        val lastIndex = listData.size
-        listData.addAll(datas)
-        isHasMore = true
-        notifyItemRangeInserted(lastIndex, datas.size)
-        compatibilityDataSizeChanged(datas.size)
+        compatibilityDataSizeChanged(1)
         checkPageState()
-        return lastIndex
     }
 
     /**
-     * 插入多个数据
+     * 添加多个数据
      *
-     * @param data 多个数据
+     * @param newData 多个数据
      * @param scrollToThis 是否需要滑动列表到这个位置
      */
-    fun addDatas(data: ItemData, scrollToThis: Boolean) {
-        val insertIndex = addDatas(data)
+    fun addData(newData: Collection<*>, scrollToThis: Boolean) {
+        val insertIndex = addData(newData)
         if (scrollToThis) {
             smoothScrollToPosition(insertIndex)
         }
     }
 
     /**
-     * 添加数据
+     * 添加多个数据
      *
-     * @param datas 多个数据，添加到最后
+     * @param newData 多个数据，添加到最后
      */
-    fun addDatas(datas: ItemData): Int {
-        val lastIndex = listData.size
-        this.listData.addAll(datas)
+    fun addData(newData: Collection<*>): Int {
+        this.listData.addAll(newData)
         isHasMore = true
-        notifyItemRangeInserted(lastIndex, datas.size)
-        compatibilityDataSizeChanged(datas.size)
+        val insertStart = listData.size - newData.size
+        notifyItemRangeInserted(insertStart, newData.size)
+        if (itemCount > dataCount) {
+            notifyItemRangeChanged(dataCount, itemCount - dataCount)
+        }
+        compatibilityDataSizeChanged(newData.size)
         checkPageState()
-        return lastIndex
+        return insertStart
     }
 
     /**
@@ -736,7 +691,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
         listData.removeAt(position)
         notifyItemRemoved(position)
-        notifyItemRangeChanged(position, listData.size - position)
+        notifyItemRangeChanged(position, itemCount - position)
         compatibilityDataSizeChanged(0)
         if (listData.isEmpty()) {
             emptyView?.setPageState(PageState.Empty)

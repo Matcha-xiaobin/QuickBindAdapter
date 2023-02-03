@@ -66,7 +66,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
         adapter.setOnLoadMoreListener(() -> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
             binding.getRoot().postDelayed(() -> {
-                adapter.addDatas(createSomeData(), true);
+                adapter.addData(createSomeData(), true);
                 if (adapter.getItemCount() > 50) {
                     adapter.loadMoreSuccessAndNoMore();
                 } else {
