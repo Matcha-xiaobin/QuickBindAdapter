@@ -681,6 +681,22 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     /**
+     * 已过时，统一使用addData()
+     */
+    @Deprecated("Please use addData()", replaceWith = ReplaceWith("addData(newData)"))
+    fun addDatas(newData: Collection<*>): Int {
+        return addData(newData)
+    }
+
+    /**
+     * 已过时，统一使用addData()
+     */
+    @Deprecated("Please use addData()", replaceWith = ReplaceWith("addData(newData, scrollToThis)"))
+    fun addDatas(newData: Collection<*>, scrollToThis: Boolean) {
+        addData(newData, scrollToThis)
+    }
+
+    /**
      * 移除某个item
      *
      * @param position 位置
