@@ -1,13 +1,15 @@
 package com.xiaobin.quickbindadapter
 
 import android.content.Context
-import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.annotation.IdRes
 import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
+import androidx.core.view.setPadding
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
@@ -197,37 +199,54 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BindHolder {
         //根据getItemViewType方法返回的viewType，判断需要用哪种布局
-        if (viewType == LOAD_MORE_TYPE) {
-            //加载更多布局
-            if (loadMoreItemView == null) {
-                loadMoreItemView = DefaultLoadView(mContext!!)
+        return when (viewType) {
+            LOAD_MORE_TYPE -> {
+                if (loadMoreItemView == null) {
+                    loadMoreItemView = DefaultLoadView(mContext!!)
+                }
+                loadMoreItemView!!.createViewHolder(parent, lifecycleOwner) {
+                    loadMore()
+                }
             }
-            return loadMoreItemView!!.createViewHolder(parent, lifecycleOwner) {
-                loadMore()
+            EMPTY_VIEW_TYPE -> {
+                emptyView!!.createViewHolder(parent, lifecycleOwner)
             }
-        } else if (viewType >= 0) {
-            val mClass = layoutClass[viewType]
-            val layoutId = layoutType[mClass]!!
-            if (StaggeredFullSpan::class.java.isAssignableFrom(mClass!!)) {
-                return FullSpanBindHolder(
-                    DataBindingUtil.inflate(
-                        LayoutInflater.from(parent.context),
-                        layoutId, parent, false
-                    ),
-                    lifecycleOwner
-                )
+            else -> {
+                if (layoutClass.containsKey(viewType)) {
+                    val mClass = layoutClass[viewType]
+                    val layoutId = layoutType[mClass]!!
+                    if (StaggeredFullSpan::class.java.isAssignableFrom(mClass!!)) {
+                        FullSpanBindHolder(
+                            DataBindingUtil.inflate(
+                                LayoutInflater.from(parent.context),
+                                layoutId, parent, false
+                            ),
+                            lifecycleOwner
+                        )
+                    } else {
+                        BindHolder(
+                            DataBindingUtil.inflate(
+                                LayoutInflater.from(parent.context),
+                                layoutId, parent, false
+                            ),
+                            lifecycleOwner
+                        )
+                    }
+                } else {
+                    BindHolder(
+                        TextView(parent.context).apply {
+                            text = unknownViewTypeText
+                            gravity = Gravity.CENTER_VERTICAL
+                            setPadding(28)
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                        }
+                    )
+                }
             }
-            return BindHolder(
-                DataBindingUtil.inflate(
-                    LayoutInflater.from(parent.context),
-                    layoutId, parent, false
-                ),
-                lifecycleOwner
-            )
-        } else if (listData.isEmpty() && emptyView != null) {
-            return emptyView!!.createViewHolder(parent, lifecycleOwner)
         }
-        return BindHolder(View(parent.context))
     }
 
     override fun onBindViewHolder(holder: BindHolder, position: Int) {
@@ -975,6 +994,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     companion object {
+
+        var unknownViewTypeText = "Undefined data type!"
 
         fun create(): QuickBindAdapter {
             return QuickBindAdapter()

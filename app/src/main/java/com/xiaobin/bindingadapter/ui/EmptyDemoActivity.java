@@ -53,9 +53,14 @@ public class EmptyDemoActivity extends BaseActivity<ActivityEmptyBinding> {
     }
 
     public void addData(View view) {
-        ChatListBean item = new ChatListBean();
-        item.setId("嘿咻");
-        bindAdapter.addData(item, true);
+        int i = bindAdapter.getDataCount() % 2;
+        if (i == 0) {
+            ChatListBean item = new ChatListBean();
+            item.setId("嘿咻");
+            bindAdapter.addData(item, true);
+        } else  {
+            bindAdapter.addData(12, true);
+        }
     }
 
     public void reduceData(View view) {
