@@ -116,14 +116,13 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                 }
             }
             if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
+                if (loadMoreItemView == null && mContext != null) {
+                    loadMoreItemView = DefaultLoadView(mContext!!)
+                }
                 if (dataCount == 0) {
-                    if (loadMoreItemView == null && mContext != null) {
-                        loadMoreItemView = DefaultLoadView(mContext!!)
-                    }
                     loadMoreItemView?.isNoMoreData()
                     return
                 }
-
                 val isOnLoading =
                     loadMoreItemView?.loadMoreState == BaseLoadView.LoadMoreState.LOADING
                 if (!isOnLoading && isHasMore) {
@@ -350,6 +349,10 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
     private fun setupScrollListener() {
         if (onLoadMoreListener == null) return
+        if (loadMoreItemView == null && mContext != null) {
+            loadMoreItemView = DefaultLoadView(mContext!!)
+        }
+
         //先移除之前的，在添加，防止重复添加
         mRecyclerView?.removeOnScrollListener(onScrollListener)
         mRecyclerView?.addOnScrollListener(onScrollListener)
@@ -469,17 +472,17 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 加载更多完成
      */
     fun loadMoreSuccess() {
-        if (dataCount == 0 || loadMoreItemView == null || !isHasMore) return
-        loadMoreItemView!!.isLoadMoreSuccess()
+        if (dataCount == 0 || !isHasMore) return
+        loadMoreItemView?.isLoadMoreSuccess()
     }
 
     /**
      * 加载更多完成，没有更多数据了
      */
     fun loadMoreSuccessAndNoMore() {
-        if (dataCount == 0 || loadMoreItemView == null) return
+        if (dataCount == 0) return
         isHasMore = false
-        loadMoreItemView!!.isNoMoreData()
+        loadMoreItemView?.isNoMoreData()
     }
 
     /**
@@ -496,8 +499,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 加载更多失败了
      */
     fun loadMoreFailed() {
-        if (dataCount == 0 || loadMoreItemView == null || !isHasMore) return
-        loadMoreItemView!!.isLoadMoreFailed()
+        if (dataCount == 0 || !isHasMore) return
+        loadMoreItemView?.isLoadMoreFailed()
     }
 
     /**
@@ -523,28 +526,13 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      *
      * @param newData 全新数据
      */
-    fun setNewData(newData: List<*>?) {
+    fun setNewData(newData: Collection<*>?) {
         listData.clear()
         newData?.let {
             listData.addAll(it)
         }
-        isHasMore = listData.size != 0
         notifyDataSetChanged()
-        checkPageState()
-    }
-
-    /**
-     * 设置新的数据
-     *
-     * @param newData 全新数据
-     */
-    fun setNewData(newData: ItemData?) {
-        listData.clear()
-        newData?.let {
-            listData = it
-        }
-        isHasMore = listData.size != 0
-        notifyDataSetChanged()
+        isHasMore = listData.isNotEmpty()
         checkPageState()
     }
 
