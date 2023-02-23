@@ -26,7 +26,7 @@ class DefaultPlacePageConfigsBean : Cloneable {
 }
 
 /**
- * 默认的 空数据 占位 布局
+ * 默认的 状态 页面
  */
 class DefaultEmptyStatePage(private val context: Context) :
     BasePageStateView<McXbLayoutPageEmptyBinding, McXbLayoutPageErrorBinding, McXbLayoutPageLoadingBinding>(
@@ -39,6 +39,14 @@ class DefaultEmptyStatePage(private val context: Context) :
         //全局配置
         var globalConfig: DefaultPlacePageConfigsBean? = null
             private set
+
+        /**
+         * 调用set方法，全局替换默认状态页为自定义的状态页
+         * 如果统一设置为自定义的状态页，那么就不需要配置全局配置项了，因为那个是给默认状态页用的
+         */
+        var defaultStatePage: (Context) -> BasePageStateView<*,*,*> = {
+            DefaultEmptyStatePage(it)
+        }
 
         //创建全局配置
         fun createGlobalConfig(result: () -> DefaultPlacePageConfigsBean) {

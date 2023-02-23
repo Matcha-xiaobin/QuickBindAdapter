@@ -50,6 +50,14 @@ class DefaultLoadView(private val context: Context) :
         var globalConfig: DefaultLoadViewConfigsBean? = null
             private set
 
+        /**
+         * 调用set方法，全局替换默认加载更多样式为自定义的加载更多样式
+         * 如果统一设置为自定义的加载更多样式，那么就不需要配置全局配置项了，因为那个是给默认加载更多样式用的
+         */
+        var defaultLoadView: (Context) -> BaseLoadView<*> = {
+            DefaultLoadView(it)
+        }
+
         //创建全局配置
         fun createGlobalConfig(result: () -> DefaultLoadViewConfigsBean) {
             globalConfig = result.invoke()
@@ -59,6 +67,7 @@ class DefaultLoadView(private val context: Context) :
         fun createGlobalConfig(result: DefaultLoadViewConfigsBean) {
             globalConfig = result
         }
+
     }
 
     init {

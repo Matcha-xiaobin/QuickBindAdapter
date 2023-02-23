@@ -117,7 +117,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             }
             if (getItemViewType(lastItemIndex) == LOAD_MORE_TYPE) {
                 if (loadMoreItemView == null && mContext != null) {
-                    loadMoreItemView = DefaultLoadView(mContext!!)
+                    loadMoreItemView = DefaultLoadView.defaultLoadView(mContext!!)
                 }
                 if (dataCount == 0) {
                     loadMoreItemView?.isNoMoreData()
@@ -201,7 +201,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         return when (viewType) {
             LOAD_MORE_TYPE -> {
                 if (loadMoreItemView == null) {
-                    loadMoreItemView = DefaultLoadView(mContext!!)
+                    loadMoreItemView = DefaultLoadView.defaultLoadView(mContext!!)
                 }
                 loadMoreItemView!!.createViewHolder(parent, lifecycleOwner) {
                     loadMore()
@@ -350,7 +350,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     private fun setupScrollListener() {
         if (onLoadMoreListener == null) return
         if (loadMoreItemView == null && mContext != null) {
-            loadMoreItemView = DefaultLoadView(mContext!!)
+            loadMoreItemView = DefaultLoadView.defaultLoadView(mContext!!)
         }
 
         //先移除之前的，在添加，防止重复添加
@@ -945,7 +945,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 使用默认的空列表占位布局控制器
      */
     fun setEmptyView(context: Context, defaultPageState: PageState): QuickBindAdapter {
-        emptyView = DefaultEmptyStatePage(context).apply {
+        emptyView = DefaultEmptyStatePage.defaultStatePage(context).apply {
             setDefaultPage(defaultPageState)
         }
         return this
