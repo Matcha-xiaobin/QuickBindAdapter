@@ -17,9 +17,9 @@ import com.xiaobin.bindingadapter.ui.linear.LinearMultiActivity;
 import com.xiaobin.bindingadapter.ui.linear.LinearSingleActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredMultiActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredSingleActivity;
+import com.xiaobin.quickbindadapter.DefaultEmptyStatePage;
 import com.xiaobin.quickbindadapter.DefaultLoadView;
 import com.xiaobin.quickbindadapter.DefaultLoadViewConfigsBean;
-import com.xiaobin.quickbindadapter.DefaultEmptyStatePage;
 import com.xiaobin.quickbindadapter.DefaultPlacePageConfigsBean;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
@@ -106,6 +106,7 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
             if (itemData instanceof String) {
                 // R.layout.item_start 类型布局
             }
+            return null;
         });
         //绑定列表item的点击事件
         adapter.setOnItemClickListener((adapter1, view, data, position) -> {
@@ -143,6 +144,7 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
             }
             intent.setClass(this, mClass);
             startActivity(intent);
+            return null;
         });
 
         //数据，这里为了模拟加载更多效果，使用LinkedList逐个加载数据
@@ -176,6 +178,7 @@ public class StartActivity extends BaseActivity<ActivityBaseBinding> {
                     adapter.loadMoreSuccessAndNoMore();
                 }
             }, 300);
+            return null;
         });
         //给列表绑定adapter适配器
         binding.recyclerView.setAdapter(adapter);

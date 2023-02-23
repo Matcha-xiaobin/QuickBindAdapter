@@ -73,6 +73,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     adapter.loadMoreSuccess();
                 }
             }, 1500);
+            return null;
         });
 
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
@@ -94,6 +95,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
             } else if (itemData instanceof StaggeredHeadBean) {
                 // R.layout.item_staggered_head 类型布局
             }
+            return null;
         });
         //绑定item的点击事件
         adapter.setOnItemClickListener((adapter1, view, data, position) -> {
@@ -108,6 +110,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
                 StaggeredHeadBean mData = (StaggeredHeadBean) data;
                 Toast.makeText(this, "点击的是 " + mData.getTitle() + " 分组条", Toast.LENGTH_SHORT).show();
             }
+            return null;
         });
         adapter.setOnItemChildClickListener((adapter1, view, data, position) -> {
             //item上子控件 点击事件
@@ -135,6 +138,7 @@ public class StaggeredMultiActivity extends BaseActivity<ActivityBaseBinding> {
                 Toast.makeText(this, "点击的是 " + mData.getTitle() + " 分组条的 TextView", Toast.LENGTH_SHORT).show();
             }
 
+            return null;
         });
 
         //数据方式一：

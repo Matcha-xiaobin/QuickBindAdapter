@@ -11,6 +11,7 @@ import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
 import androidx.core.view.setPadding
 import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -77,17 +78,18 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
      */
-    private var quickBind: QuickBind? = null
+    private var quickBind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)? = null
 
     /**
      * 设置加载更多监听
      * 如果没有配置自定义的加载更多样式，则初始化默认的
      */
-    private var onLoadMoreListener: OnLoadMoreListener? = null
+    private var onLoadMoreListener: (() -> Unit)? = null
         set(value) {
             field = value
             setupScrollListener()
         }
+
     private var mRecyclerView: RecyclerView? = null
 
     private var isHasMore = true
@@ -136,7 +138,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                         if (!checkRvCanScroll()) return
                     }
                     //触发加载更多
-                    onLoadMoreListener?.onLoadMore()
+                    onLoadMoreListener?.invoke()
                     loadMoreItemView?.isLoading()
                 }
             }
@@ -257,20 +259,20 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         //item点击事件绑定
         if (onItemClickListener != null) {
             holder.itemView.setOnClickListener { view ->
-                onItemClickListener?.onClick(this, view, itemData, position)
+                onItemClickListener?.invoke(this, view, itemData, position)
             }
         }
         //item长按事件绑定
         if (onItemLongClickListener != null) {
             holder.itemView.setOnLongClickListener { view ->
-                onItemLongClickListener?.onLongClick(this, view, itemData, position) == true
+                onItemLongClickListener?.invoke(this, view, itemData, position) == true
             }
         }
         //子控件点击事件
         if (clickListenerIds.containsKey(clz)) {
             for (id in clickListenerIds[clz]!!) {
                 holder.itemView.findViewById<View>(id).setOnClickListener { view ->
-                    onItemChildClickListener?.onClick(this, view, itemData, position)
+                    onItemChildClickListener?.invoke(this, view, itemData, position)
                 }
             }
         }
@@ -278,7 +280,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (longClickListenerIds.containsKey(clz)) {
             for (id in longClickListenerIds[clz]!!) {
                 holder.itemView.findViewById<View>(id).setOnLongClickListener { view ->
-                    onItemChildLongClickListener?.onLongClick(
+                    onItemChildLongClickListener?.invoke(
                         this,
                         view,
                         itemData,
@@ -290,7 +292,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (variableIds.containsKey(clz)) {
             holder.binding?.setVariable(variableIds[clz]!!, itemData)
         }
-        quickBind?.onBind(holder.binding!!, itemData, position)
+        quickBind?.invoke(holder.binding!!, itemData, position)
         holder.binding?.executePendingBindings()
     }
 
@@ -386,7 +388,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
             loadMoreItemView?.isWaitLoading()
         } else {
             loadMoreItemView!!.isLoading()
-            onLoadMoreListener!!.onLoadMore()
+            onLoadMoreListener!!.invoke()
         }
     }
 
@@ -420,21 +422,19 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * item事件
      */
-    private var onItemClickListener: OnItemClickListener? = null
-    private var onItemLongClickListener: OnItemLongClickListener? = null
+    private var onItemClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit)? =
+        null
+    private var onItemLongClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean)? =
+        null
 
     /**
      * 子控件事件
      */
-    private var onItemChildClickListener: OnItemClickListener? = null
-    private var onItemChildLongClickListener: OnItemLongClickListener? = null
+    private var onItemChildClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit)? =
+        null
+    private var onItemChildLongClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean)? =
+        null
 
-    /**
-     * 加载更多
-     */
-    interface OnLoadMoreListener {
-        fun onLoadMore()
-    }
 
     private fun checkPageState() {
         if (listData.isEmpty()) {
@@ -455,7 +455,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     /**
-     * 获得空数据占位图控制器
+     * 获得 状态页 控制器
      */
     fun getEmptyView(): BasePageStateView<*, *, *>? {
         return emptyView
@@ -490,7 +490,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      */
     fun loadMore() {
         if (loadMoreItemView?.loadMoreState != BaseLoadView.LoadMoreState.LOADING) {
-            onLoadMoreListener?.onLoadMore()
+            onLoadMoreListener?.invoke()
         }
         loadMoreItemView?.isLoading()
     }
@@ -924,7 +924,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         return this
     }
 
-    fun setQuickBind(bind: QuickBind?): QuickBindAdapter {
+    fun setQuickBind(bind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)?): QuickBindAdapter {
         quickBind = bind
         return this
     }
@@ -935,16 +935,31 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     /**
-     * 使用默认的空列表占位布局控制器
+     * 启用 状态页
      */
+    @Deprecated("启用 状态页", replaceWith = ReplaceWith("enableStatePage(context)"))
     fun setEmptyView(context: Context): QuickBindAdapter {
-        return setEmptyView(context, PageState.Loading)
+        return enableStatePage(context)
     }
 
     /**
-     * 使用默认的空列表占位布局控制器
+     * 启用 状态页， 并设置默认展示的页面
      */
+    @Deprecated(
+        "启用 状态页 并设置默认展示的页面",
+        replaceWith = ReplaceWith("enableStatePage(context, defaultPageState)")
+    )
     fun setEmptyView(context: Context, defaultPageState: PageState): QuickBindAdapter {
+        return enableStatePage(context, defaultPageState)
+    }
+
+    /**
+     * 启用 状态页， 并设置默认展示的页面
+     */
+    fun enableStatePage(
+        context: Context,
+        defaultPageState: PageState = PageState.Loading
+    ): QuickBindAdapter {
         emptyView = DefaultEmptyStatePage.defaultStatePage(context).apply {
             setDefaultPage(defaultPageState)
         }
@@ -956,27 +971,27 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         return this
     }
 
-    fun setOnLoadMoreListener(loadMoreListener: OnLoadMoreListener?): QuickBindAdapter {
+    fun setOnLoadMoreListener(loadMoreListener: (() -> Unit)?): QuickBindAdapter {
         onLoadMoreListener = loadMoreListener
         return this
     }
 
-    fun setOnItemClickListener(listener: OnItemClickListener): QuickBindAdapter {
+    fun setOnItemClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindAdapter {
         onItemClickListener = listener
         return this
     }
 
-    fun setOnItemLongClickListener(listener: OnItemLongClickListener): QuickBindAdapter {
+    fun setOnItemLongClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindAdapter {
         onItemLongClickListener = listener
         return this
     }
 
-    fun setOnItemChildClickListener(listener: OnItemClickListener): QuickBindAdapter {
+    fun setOnItemChildClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindAdapter {
         onItemChildClickListener = listener
         return this
     }
 
-    fun setOnItemChildLongClickListener(listener: OnItemLongClickListener): QuickBindAdapter {
+    fun setOnItemChildLongClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindAdapter {
         onItemChildLongClickListener = listener
         return this
     }

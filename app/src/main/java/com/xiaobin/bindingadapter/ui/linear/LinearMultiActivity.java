@@ -56,7 +56,6 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
         binding.recyclerView.setAdapter(adapter);
         adapter.setOnLoadMoreListener(() -> {
             Toast.makeText(this, "加载更多触发", Toast.LENGTH_SHORT).show();
-            Log.d("TTTTT", "initView: 触发加载更多");
             binding.getRoot().postDelayed(() -> {
                 ItemData dataList = new ItemData();
                 ChatListBean item;
@@ -89,6 +88,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
                     adapter.loadMoreSuccess();
                 }
             }, 1500);
+            return null;
         });
         //如果你想要在这里或者是在adapter中，写逻辑代码，可以这样：也可以单独写个类 实现 QuickCovert接口，然后传入这里
         adapter.setQuickBind((binding, itemData, position) -> {
@@ -105,6 +105,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
             } else if (itemData instanceof String) {
                 // R.layout.item_head 类型布局
             }
+            return null;
         });
         //绑定item的点击事件
         adapter.setOnItemClickListener((adapter1, view, data, position) -> {
@@ -115,6 +116,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
             } else if (data instanceof String) {
                 Toast.makeText(this, "点击的是 " + data + " 分组条", Toast.LENGTH_SHORT).show();
             }
+            return null;
         });
         adapter.setOnItemChildClickListener((adapter1, view, data, position) -> {
             //item上子控件 点击事件
@@ -132,6 +134,7 @@ public class LinearMultiActivity extends BaseActivity<ActivityBaseBinding> {
                 Toast.makeText(this, "点击的是 " + data + " 分组条的 TextView", Toast.LENGTH_SHORT).show();
             }
 
+            return null;
         });
 
         //数据方式一：
