@@ -78,7 +78,8 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
      */
-    private var quickBind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)? = null
+    private var quickBind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)? =
+        null
 
     /**
      * 设置加载更多监听
@@ -993,6 +994,66 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
     fun setOnItemChildLongClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindAdapter {
         onItemChildLongClickListener = listener
+        return this
+    }
+
+    //已过期的方法，后续应该会剔除
+    @Deprecated(
+        "绑定内容",
+        replaceWith = ReplaceWith("setQuickBind { binding, itemData, position -> }")
+    )
+    fun setQuickBind(bind: QuickBind?): QuickBindAdapter {
+        quickBind = if (bind == null) {
+            null
+        } else {
+            { binding, itemData, position ->
+                bind.onBind(binding, itemData, position)
+            }
+        }
+        return this
+    }
+
+    @Deprecated("设置加载更多事件")
+    fun setOnLoadMoreListener(loadMoreListener: OnLoadMoreListener?): QuickBindAdapter {
+        onLoadMoreListener = if (loadMoreListener == null) {
+            null
+        } else {
+            {
+                loadMoreListener.onLoadMore()
+            }
+        }
+        return this
+    }
+
+    @Deprecated("设置列表点击事件")
+    fun setOnItemClickListener(listener: OnItemClickListener): QuickBindAdapter {
+        onItemClickListener = { adapter, view, data, position ->
+            listener.onClick(adapter, view, data, position)
+        }
+        return this
+    }
+
+    @Deprecated("设置列表长按事件")
+    fun setOnItemLongClickListener(listener: OnItemLongClickListener): QuickBindAdapter {
+        onItemLongClickListener = { adapter, view, data, position ->
+            listener.onLongClick(adapter, view, data, position)
+        }
+        return this
+    }
+
+    @Deprecated("设置子控件点击事件")
+    fun setOnItemChildClickListener(listener: OnItemClickListener): QuickBindAdapter {
+        onItemChildClickListener = { adapter, view, data, position ->
+            listener.onClick(adapter, view, data, position)
+        }
+        return this
+    }
+
+    @Deprecated("设置子控件长按事件")
+    fun setOnItemChildLongClickListener(listener: OnItemLongClickListener): QuickBindAdapter {
+        onItemChildLongClickListener = { adapter, view, data, position ->
+            listener.onLongClick(adapter, view, data, position)
+        }
         return this
     }
 
