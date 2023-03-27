@@ -53,7 +53,9 @@ abstract class BasePageStateView<
     }
 
     fun createViewHolder(parent: ViewGroup, mLifecycleOwner: LifecycleOwner? = null): BindHolder {
-        if (viewHolder != null) return viewHolder!!
+        emptyView = null
+        loadingView = null
+        errorView = null
         emptyPageDecorView = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
             R.layout.mc_xb_layout_place_page,
