@@ -112,6 +112,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                     if (layoutManager.childCount < 1) return
                     lastItemIndex = layoutManager.findLastVisibleItemPosition()
                 }
+
                 is StaggeredGridLayoutManager -> {
                     val positions = IntArray(layoutManager.spanCount)
                     layoutManager.findLastVisibleItemPositions(positions)
@@ -139,8 +140,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                         if (!checkRvCanScroll()) return
                     }
                     //触发加载更多
-                    onLoadMoreListener?.invoke()
                     loadMoreItemView?.isLoading()
+                    mRecyclerView?.post {
+                        if (isHasMore) {
+                            onLoadMoreListener?.invoke()
+                        }
+                    } ?: onLoadMoreListener?.invoke()
                 }
             }
         }
@@ -168,9 +173,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                 //GridLayoutManager同样走这个
                 layoutManager.reverseLayout
             }
+
             is StaggeredGridLayoutManager -> {
                 layoutManager.reverseLayout
             }
+
             else -> false
         }
     }
@@ -210,9 +217,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                     loadMore()
                 }
             }
+
             EMPTY_VIEW_TYPE -> {
                 emptyView!!.createViewHolder(parent, lifecycleOwner)
             }
+
             else -> {
                 if (layoutClass.containsKey(viewType)) {
                     val mClass = layoutClass[viewType]
@@ -388,8 +397,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (!autoLoadMore) {
             loadMoreItemView?.isWaitLoading()
         } else {
-            loadMoreItemView!!.isLoading()
-            onLoadMoreListener!!.invoke()
+            loadMoreItemView?.isLoading()
+            mRecyclerView?.post {
+                if (isHasMore) {
+                    onLoadMoreListener?.invoke()
+                }
+            } ?: onLoadMoreListener?.invoke()
         }
     }
 
