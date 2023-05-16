@@ -360,13 +360,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     private fun setupScrollListener() {
+        //先移除之前的，在添加，防止重复添加
+        mRecyclerView?.removeOnScrollListener(onScrollListener)
         if (onLoadMoreListener == null) return
         if (loadMoreItemView == null && mContext != null) {
             loadMoreItemView = DefaultLoadView.defaultLoadView(mContext!!)
         }
-
-        //先移除之前的，在添加，防止重复添加
-        mRecyclerView?.removeOnScrollListener(onScrollListener)
         mRecyclerView?.addOnScrollListener(onScrollListener)
     }
 
@@ -988,6 +987,16 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun setOnLoadMoreListener(loadMoreListener: (() -> Unit)?): QuickBindAdapter {
         onLoadMoreListener = loadMoreListener
         return this
+    }
+
+    /**
+     * 移除加载更多功能
+     * 移除后如需再次启用，需要重新设置监听：
+     * @see setOnLoadMoreListener
+     */
+    fun removeOnLoadMoreListener() {
+        onLoadMoreListener = null
+        setupScrollListener()
     }
 
     fun setOnItemClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindAdapter {
