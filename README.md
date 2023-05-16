@@ -222,6 +222,10 @@ Step 2. Add the dependency
     adapter.loadMore();
     禁止 触底自动加载更多 关闭后，列表滑动到底后，需要用户点击才会触发加载更多
     adapter.setAutoLoadMore(false);
+    关闭加载更多功能:
+    adapter.setOnLoadMoreListener(null as (()->Unit)?)
+    或者(3.2.3版本开始支持):
+    adapter.removeOnLoadMoreListener()
     设置是否开启 当列表数据没有充满rv的情况下，也自动加载更多
      * 如果关闭了 触底自动加载更多，那么这个方法将不在起作用
     adapter.enableLoadMoreWhenPageNotFull(true);
