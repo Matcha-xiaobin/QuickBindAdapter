@@ -71,7 +71,6 @@ public class LinearSingleActivity extends BaseActivity<ActivityBaseBinding> {
             } else if (viewId == R.id.tv_message) {
                 Toast.makeText(this, "点击的是Index: " + position + ", ID: " + itemData.getId() + " 的 消息", Toast.LENGTH_SHORT).show();
             }
-
             return null;
         });
         adapter.setOnItemLongClickListener((adapter1, view, data, position) -> {

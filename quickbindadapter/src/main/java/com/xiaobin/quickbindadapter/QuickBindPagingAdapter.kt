@@ -1,5 +1,6 @@
 package com.xiaobin.quickbindadapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.Gravity
@@ -14,17 +15,50 @@ import androidx.core.view.ViewCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import kotlinx.coroutines.Dispatchers
 import java.lang.Integer.min
+import kotlin.coroutines.CoroutineContext
 
 /**
  * @author xiao bin
  * @data 2019/7/10 最后修订 2022/11/15
  */
-open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
+open class QuickBindPagingAdapter : PagingDataAdapter<Any, BindHolder> {
+
+    constructor() : super(object : DiffUtil.ItemCallback<Any>() {
+        override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean {
+            return oldItem == newItem
+        }
+
+        @SuppressLint("DiffUtilEquals")
+        override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean {
+            return oldItem == newItem
+        }
+
+    })
+
+    constructor(lifecycleOwner: LifecycleOwner?) : this() {
+        this.lifecycleOwner = lifecycleOwner
+    }
+
+    constructor(
+        lifecycleOwner: LifecycleOwner? = null,
+        mainDispatcher: CoroutineContext = Dispatchers.Main,
+        workerDispatcher: CoroutineContext = Dispatchers.Default,
+        defaultDiffUtil: DiffUtil.ItemCallback<Any>
+    ) : super(
+        diffCallback = defaultDiffUtil,
+        mainDispatcher = mainDispatcher,
+        workerDispatcher = workerDispatcher
+    ) {
+        this.lifecycleOwner = lifecycleOwner
+    }
 
     private val TAG = "QuickBindAdapter"
     private val EMPTY_VIEW_TYPE = -1
@@ -156,10 +190,6 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                 }
             }
         }
-    }
-
-    constructor(lifecycleOwner: LifecycleOwner?) : this() {
-        this.lifecycleOwner = lifecycleOwner
     }
 
     override fun getItemCount(): Int {
@@ -451,17 +481,17 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * item事件
      */
-    private var onItemClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit)? =
+    private var onItemClickListener: ((adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Unit)? =
         null
-    private var onItemLongClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean)? =
+    private var onItemLongClickListener: ((adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Boolean)? =
         null
 
     /**
      * 子控件事件
      */
-    private var onItemChildClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit)? =
+    private var onItemChildClickListener: ((adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Unit)? =
         null
-    private var onItemChildLongClickListener: ((adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean)? =
+    private var onItemChildLongClickListener: ((adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Boolean)? =
         null
 
 
@@ -538,7 +568,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      *
      * @param lifecycleOwner
      */
-    fun setLifecycleOwner(lifecycleOwner: LifecycleOwner?): QuickBindAdapter {
+    fun setLifecycleOwner(lifecycleOwner: LifecycleOwner?): QuickBindPagingAdapter {
         this.lifecycleOwner = lifecycleOwner
         return this
     }
@@ -819,7 +849,11 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param bindVariableId DataBinding BR
      * @return 这个对象
      */
-    fun bind(clazz: Class<*>, @LayoutRes layoutId: Int, bindVariableId: Int): QuickBindAdapter {
+    fun bind(
+        clazz: Class<*>,
+        @LayoutRes layoutId: Int,
+        bindVariableId: Int
+    ): QuickBindPagingAdapter {
         layoutClass[layoutId] = clazz
         layoutType[clazz] = layoutId
         variableIds[clazz] = bindVariableId
@@ -833,7 +867,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param layoutId 布局ID
      * @return 这个对象
      */
-    fun bind(clazz: Class<*>, @LayoutRes layoutId: Int): QuickBindAdapter {
+    fun bind(clazz: Class<*>, @LayoutRes layoutId: Int): QuickBindPagingAdapter {
         layoutClass[layoutId] = clazz
         layoutType[clazz] = layoutId
         return this
@@ -846,7 +880,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param viewId 控件ID，多个
      * @return 这个对象
      */
-    fun addClicks(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindAdapter {
+    fun addClicks(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindPagingAdapter {
         val ids: MutableList<Int> = ArrayList(viewId.size)
         for (id in viewId) {
             ids.add(id)
@@ -862,7 +896,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * @param viewId 控件ID，多个
      * @return 这个对象
      */
-    fun addLongClicks(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindAdapter {
+    fun addLongClicks(clazz: Class<*>, @IdRes vararg viewId: Int): QuickBindPagingAdapter {
         val ids: MutableList<Int> = ArrayList(viewId.size)
         for (id in viewId) {
             ids.add(id)
@@ -966,22 +1000,22 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 设置是否开启 当列表数据没有充满rv的情况下，也自动加载更多
      * 如果关闭了触底自动加载更多，那么这个方法将不在起作用
      */
-    fun enableLoadMoreWhenPageNotFull(canLoadWhenPageNotFull: Boolean): QuickBindAdapter {
+    fun enableLoadMoreWhenPageNotFull(canLoadWhenPageNotFull: Boolean): QuickBindPagingAdapter {
         enableLoadMoreWhenNoFull = canLoadWhenPageNotFull
         return this
     }
 
-    fun setQuickBind(bind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)?): QuickBindAdapter {
+    fun setQuickBind(bind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)?): QuickBindPagingAdapter {
         quickBind = bind
         return this
     }
 
-    fun setQuickBindPayloads(bind: ((binding: ViewDataBinding, itemData: Any, position: Int, payloads: MutableList<Any>) -> Unit)?): QuickBindAdapter {
+    fun setQuickBindPayloads(bind: ((binding: ViewDataBinding, itemData: Any, position: Int, payloads: MutableList<Any>) -> Unit)?): QuickBindPagingAdapter {
         quickBindPayloads = bind
         return this
     }
 
-    fun setEmptyView(view: BasePageStateView<*, *, *>?): QuickBindAdapter {
+    fun setEmptyView(view: BasePageStateView<*, *, *>?): QuickBindPagingAdapter {
         emptyView = view
         return this
     }
@@ -990,7 +1024,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
      * 启用 状态页
      */
     @Deprecated("启用 状态页", replaceWith = ReplaceWith("enableStatePage(context)"))
-    fun setEmptyView(context: Context): QuickBindAdapter {
+    fun setEmptyView(context: Context): QuickBindPagingAdapter {
         return enableStatePage(context)
     }
 
@@ -1001,7 +1035,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         "启用 状态页 并设置默认展示的页面",
         replaceWith = ReplaceWith("enableStatePage(context, defaultPageState)")
     )
-    fun setEmptyView(context: Context, defaultPageState: PageState): QuickBindAdapter {
+    fun setEmptyView(context: Context, defaultPageState: PageState): QuickBindPagingAdapter {
         return enableStatePage(context, defaultPageState)
     }
 
@@ -1011,19 +1045,19 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun enableStatePage(
         context: Context,
         defaultPageState: PageState = PageState.Loading
-    ): QuickBindAdapter {
+    ): QuickBindPagingAdapter {
         emptyView = DefaultEmptyStatePage.defaultStatePage(context).apply {
             setDefaultPage(defaultPageState)
         }
         return this
     }
 
-    fun setLoadMoreItemView(view: BaseLoadView<*>?): QuickBindAdapter {
+    fun setLoadMoreItemView(view: BaseLoadView<*>?): QuickBindPagingAdapter {
         loadMoreItemView = view
         return this
     }
 
-    fun setOnLoadMoreListener(loadMoreListener: (() -> Unit)?): QuickBindAdapter {
+    fun setOnLoadMoreListener(loadMoreListener: (() -> Unit)?): QuickBindPagingAdapter {
         onLoadMoreListener = loadMoreListener
         return this
     }
@@ -1060,22 +1094,22 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         }
     }
 
-    fun setOnItemClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindAdapter {
+    fun setOnItemClickListener(listener: (adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindPagingAdapter {
         onItemClickListener = listener
         return this
     }
 
-    fun setOnItemLongClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindAdapter {
+    fun setOnItemLongClickListener(listener: (adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindPagingAdapter {
         onItemLongClickListener = listener
         return this
     }
 
-    fun setOnItemChildClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindAdapter {
+    fun setOnItemChildClickListener(listener: (adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Unit): QuickBindPagingAdapter {
         onItemChildClickListener = listener
         return this
     }
 
-    fun setOnItemChildLongClickListener(listener: (adapter: QuickBindAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindAdapter {
+    fun setOnItemChildLongClickListener(listener: (adapter: QuickBindPagingAdapter, view: View, data: Any, position: Int) -> Boolean): QuickBindPagingAdapter {
         onItemChildLongClickListener = listener
         return this
     }
@@ -1084,12 +1118,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
 
         var unknownViewTypeText = "Undefined data type!"
 
-        fun create(): QuickBindAdapter {
-            return QuickBindAdapter()
+        fun create(): QuickBindPagingAdapter {
+            return QuickBindPagingAdapter()
         }
 
-        fun create(lifecycleOwner: LifecycleOwner): QuickBindAdapter {
-            return QuickBindAdapter(lifecycleOwner)
+        fun create(lifecycleOwner: LifecycleOwner): QuickBindPagingAdapter {
+            return QuickBindPagingAdapter(lifecycleOwner)
         }
 
     }

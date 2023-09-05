@@ -51,12 +51,14 @@ public class StaggeredSingleActivity extends BaseActivity<ActivityBaseBinding> {
             // binding 是这个item本身，itemData 是这个item的数据，position 是这个item所在列表中的位置
             ItemStaggeredBinding mBinding = (ItemStaggeredBinding) binding;
             mBinding.tvName.setTextColor(Color.RED);
+            return null;
         });
         //绑定item的点击事件
         adapter.setOnItemClickListener((adapter1, view, data, position) -> {
             //item点击事件
             ChatListBean itemData = (ChatListBean) data;
             Toast.makeText(this, "ID: " + itemData.getId(), Toast.LENGTH_SHORT).show();
+            return null;
         });
         adapter.setOnItemChildClickListener((adapter1, view, data, position) -> {
             //item上子控件 点击事件
@@ -69,6 +71,7 @@ public class StaggeredSingleActivity extends BaseActivity<ActivityBaseBinding> {
             } else if (viewId == R.id.tv_message) {
                 Toast.makeText(this, "点击的是ID: " + itemData.getId() + " 的 消息", Toast.LENGTH_SHORT).show();
             }
+            return null;
         });
 
         //数据方式一：
