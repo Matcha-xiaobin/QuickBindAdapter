@@ -1,4 +1,4 @@
-package com.xiaobin.quickbindadapter
+package com.xiaobin.quickbindadapter.view
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
+import com.xiaobin.quickbindadapter.BindHolder
+import com.xiaobin.quickbindadapter.R
 import com.xiaobin.quickbindadapter.databinding.McXbLayoutPlacePageBinding
 
 abstract class BasePageStateView<

@@ -6,8 +6,8 @@ import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.databinding.LayoutMyPageEmptyBinding;
 import com.xiaobin.bindingadapter.databinding.LayoutMyPageErrBinding;
 import com.xiaobin.bindingadapter.databinding.LayoutMyPageLoadingBinding;
-import com.xiaobin.quickbindadapter.BasePageStateView;
-import com.xiaobin.quickbindadapter.PageState;
+import com.xiaobin.quickbindadapter.view.BasePageStateView;
+import com.xiaobin.quickbindadapter.view.PageState;
 
 /**
  * 自定义空数据占位布局

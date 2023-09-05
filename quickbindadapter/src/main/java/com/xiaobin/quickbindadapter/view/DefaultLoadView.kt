@@ -1,10 +1,11 @@
-package com.xiaobin.quickbindadapter
+package com.xiaobin.quickbindadapter.view
 
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
 import androidx.annotation.ColorInt
+import com.xiaobin.quickbindadapter.R
 import com.xiaobin.quickbindadapter.databinding.McXbItemLoadmoreBinding
 
 class DefaultLoadViewConfigsBean : Cloneable {

@@ -14,11 +14,18 @@ open class BindHolder : ViewHolder {
     var binding: ViewDataBinding? = null
         private set
 
+    var fullSpan: Boolean = false
+        private set
+
+    constructor(view: View) : super(view)
+
     constructor(
         binding: ViewDataBinding,
-        lifecycleOwner: LifecycleOwner? = null
+        lifecycleOwner: LifecycleOwner? = null,
+        fullSpan: Boolean = false
     ) : super(binding.root) {
         this.binding = binding
+        this.fullSpan = fullSpan
         if (lifecycleOwner is LifecycleOwner) {
             binding.lifecycleOwner = lifecycleOwner
         } else {
@@ -26,5 +33,4 @@ open class BindHolder : ViewHolder {
         }
     }
 
-    constructor(view: View?) : super(view!!)
 }

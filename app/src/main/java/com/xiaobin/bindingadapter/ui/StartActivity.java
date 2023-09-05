@@ -17,10 +17,10 @@ import com.xiaobin.bindingadapter.ui.linear.LinearMultiActivity;
 import com.xiaobin.bindingadapter.ui.linear.LinearSingleActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredMultiActivity;
 import com.xiaobin.bindingadapter.ui.staggered.StaggeredSingleActivity;
-import com.xiaobin.quickbindadapter.DefaultEmptyStatePage;
-import com.xiaobin.quickbindadapter.DefaultLoadView;
-import com.xiaobin.quickbindadapter.DefaultLoadViewConfigsBean;
-import com.xiaobin.quickbindadapter.DefaultPlacePageConfigsBean;
+import com.xiaobin.quickbindadapter.view.DefaultEmptyStatePage;
+import com.xiaobin.quickbindadapter.view.DefaultLoadView;
+import com.xiaobin.quickbindadapter.view.DefaultLoadViewConfigsBean;
+import com.xiaobin.quickbindadapter.view.DefaultPlacePageConfigsBean;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 import java.util.Iterator;

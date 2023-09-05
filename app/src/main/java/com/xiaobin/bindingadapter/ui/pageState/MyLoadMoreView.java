@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 
 import com.xiaobin.bindingadapter.R;
 import com.xiaobin.bindingadapter.databinding.LayoutMyLoadingMoreBinding;
-import com.xiaobin.quickbindadapter.BaseLoadView;
+import com.xiaobin.quickbindadapter.view.BaseLoadView;
 
 /**
  * 自定义加载更多item

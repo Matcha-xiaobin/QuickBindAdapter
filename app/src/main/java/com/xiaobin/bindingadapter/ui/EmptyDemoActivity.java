@@ -12,8 +12,8 @@ import com.xiaobin.bindingadapter.bean.ChatListBean;
 import com.xiaobin.bindingadapter.databinding.ActivityEmptyBinding;
 import com.xiaobin.bindingadapter.ui.base.BaseActivity;
 import com.xiaobin.bindingadapter.ui.pageState.MyEmptyPageView;
-import com.xiaobin.quickbindadapter.DefaultEmptyStatePage;
-import com.xiaobin.quickbindadapter.PageState;
+import com.xiaobin.quickbindadapter.view.DefaultEmptyStatePage;
+import com.xiaobin.quickbindadapter.view.PageState;
 import com.xiaobin.quickbindadapter.QuickBindAdapter;
 
 /**

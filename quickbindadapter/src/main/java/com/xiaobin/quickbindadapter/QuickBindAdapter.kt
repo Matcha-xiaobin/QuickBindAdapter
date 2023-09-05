@@ -18,6 +18,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.xiaobin.quickbindadapter.interfaces.StaggeredFullSpan
+import com.xiaobin.quickbindadapter.view.BaseLoadView
+import com.xiaobin.quickbindadapter.view.BasePageStateView
+import com.xiaobin.quickbindadapter.view.DefaultEmptyStatePage
+import com.xiaobin.quickbindadapter.view.DefaultLoadView
+import com.xiaobin.quickbindadapter.view.PageState
 import java.lang.Integer.min
 
 /**
@@ -233,23 +239,15 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
                 if (layoutClass.containsKey(viewType)) {
                     val mClass = layoutClass[viewType]
                     val layoutId = layoutType[mClass]!!
-                    if (StaggeredFullSpan::class.java.isAssignableFrom(mClass!!)) {
-                        FullSpanBindHolder(
-                            DataBindingUtil.inflate(
-                                LayoutInflater.from(parent.context),
-                                layoutId, parent, false
-                            ),
-                            lifecycleOwner
-                        )
-                    } else {
-                        BindHolder(
-                            DataBindingUtil.inflate(
-                                LayoutInflater.from(parent.context),
-                                layoutId, parent, false
-                            ),
-                            lifecycleOwner
-                        )
-                    }
+                    val isFullSpan = StaggeredFullSpan::class.java.isAssignableFrom(mClass!!)
+                    BindHolder(
+                        DataBindingUtil.inflate(
+                            LayoutInflater.from(parent.context),
+                            layoutId, parent, false
+                        ),
+                        lifecycleOwner,
+                        isFullSpan
+                    )
                 } else {
                     BindHolder(
                         TextView(parent.context).apply {
@@ -297,7 +295,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         //子控件点击事件
         if (clickListenerIds.containsKey(clz)) {
             for (id in clickListenerIds[clz]!!) {
-                holder.itemView.findViewById<View>(id).setOnClickListener { view ->
+                holder.itemView.findViewById<View>(id)?.setOnClickListener { view ->
                     onItemChildClickListener?.invoke(this, view, itemData, position)
                 }
             }
@@ -305,7 +303,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         //子控件长按事件
         if (longClickListenerIds.containsKey(clz)) {
             for (id in longClickListenerIds[clz]!!) {
-                holder.itemView.findViewById<View>(id).setOnLongClickListener { view ->
+                holder.itemView.findViewById<View>(id)?.setOnLongClickListener { view ->
                     onItemChildLongClickListener?.invoke(
                         this,
                         view,
@@ -328,7 +326,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (lp is StaggeredGridLayoutManager.LayoutParams) {
             if (holder.itemViewType == LOAD_MORE_TYPE
                 || holder.itemViewType == EMPTY_VIEW_TYPE
-                || holder is FullSpanBindHolder
+                || holder.fullSpan
             ) {
                 lp.isFullSpan = true
             }

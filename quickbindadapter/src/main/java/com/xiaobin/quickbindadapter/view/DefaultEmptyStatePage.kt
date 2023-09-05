@@ -1,8 +1,9 @@
-package com.xiaobin.quickbindadapter
+package com.xiaobin.quickbindadapter.view
 
 import android.content.Context
 import android.graphics.Color
 import androidx.annotation.ColorInt
+import com.xiaobin.quickbindadapter.R
 import com.xiaobin.quickbindadapter.databinding.*
 
 class DefaultPlacePageConfigsBean : Cloneable {
@@ -44,7 +45,7 @@ class DefaultEmptyStatePage(private val context: Context) :
          * 调用set方法，全局替换默认状态页为自定义的状态页
          * 如果统一设置为自定义的状态页，那么就不需要配置全局配置项了，因为那个是给默认状态页用的
          */
-        var defaultStatePage: (Context) -> BasePageStateView<*,*,*> = {
+        var defaultStatePage: (Context) -> BasePageStateView<*, *, *> = {
             DefaultEmptyStatePage(it)
         }
 

@@ -1,7 +1,7 @@
 package com.xiaobin.bindingadapter.bean
 
 import com.xiaobin.bindingadapter.R
-import com.xiaobin.quickbindadapter.StaggeredFullSpan
+import com.xiaobin.quickbindadapter.interfaces.StaggeredFullSpan
 
 /**
  * @author 小斌
