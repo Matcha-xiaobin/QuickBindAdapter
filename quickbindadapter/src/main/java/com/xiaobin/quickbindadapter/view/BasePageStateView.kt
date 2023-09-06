@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.xiaobin.quickbindadapter.BindHolder
 import com.xiaobin.quickbindadapter.R
 import com.xiaobin.quickbindadapter.databinding.McXbLayoutPlacePageBinding
+import com.xiaobin.quickbindadapter.holder.EmptyViewHolder
 
 abstract class BasePageStateView<
         EmptyPage : ViewDataBinding,
@@ -20,8 +21,8 @@ abstract class BasePageStateView<
     private val loadingPageLayoutId: Int = 0,
 ) {
 
-    private var viewHolder: BindHolder? = null
-    private var emptyPageDecorView: McXbLayoutPlacePageBinding? = null
+    var emptyPageDecorView: McXbLayoutPlacePageBinding? = null
+        private set
     private var lifecycleOwner: LifecycleOwner? = null
 
     private var currentPageState: PageState = PageState.Loading
@@ -69,8 +70,25 @@ abstract class BasePageStateView<
             emptyPageDecorView!!.lifecycleOwner = this
         }
         setPageState(currentPageState)
-        viewHolder = BindHolder(emptyPageDecorView!!, mLifecycleOwner)
-        return viewHolder!!
+        return BindHolder(emptyPageDecorView!!, mLifecycleOwner)
+    }
+
+    fun createEmptyViewHolder(parent: ViewGroup, mLifecycleOwner: LifecycleOwner? = null): EmptyViewHolder {
+        emptyView = null
+        loadingView = null
+        errorView = null
+        emptyPageDecorView = DataBindingUtil.inflate(
+            LayoutInflater.from(parent.context),
+            R.layout.mc_xb_layout_place_page,
+            parent,
+            false
+        )
+        mLifecycleOwner?.apply {
+            lifecycleOwner = this
+            emptyPageDecorView!!.lifecycleOwner = this
+        }
+        setPageState(currentPageState)
+        return EmptyViewHolder(this, emptyPageDecorView!!, mLifecycleOwner)
     }
 
     private fun <T : ViewDataBinding> createPageViewBinding(layoutId: Int): T? {

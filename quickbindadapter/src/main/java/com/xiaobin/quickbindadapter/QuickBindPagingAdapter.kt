@@ -1,5 +1,6 @@
 package com.xiaobin.quickbindadapter
 
+import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -11,12 +12,18 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.xiaobin.quickbindadapter.interfaces.StaggeredFullSpan
+import com.xiaobin.quickbindadapter.paging.EmptyPageAdapter
+import com.xiaobin.quickbindadapter.view.BaseLoadView
 import com.xiaobin.quickbindadapter.view.BasePageStateView
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Paging 分页专用适配器，增删改需要修改数据源头的方式实现
@@ -34,94 +41,157 @@ import com.xiaobin.quickbindadapter.view.BasePageStateView
 class QuickBindPagingAdapter<T : Any>(
     itemCallback: DiffUtil.ItemCallback<T>,
     private val lifecycleOwner: LifecycleOwner? = null,
-    private val brId: Int = 0
-) : PagingDataAdapter<T, BindHolder>(itemCallback) {
+    mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
+    workerDispatcher: CoroutineDispatcher = Dispatchers.Default,
+) : PagingDataAdapter<T, BindHolder>(itemCallback, mainDispatcher, workerDispatcher) {
 
     // 布局ID - 数据类型 互相绑定
     private val itemViewTypes = HashMap<Class<*>, Int>()
     private val itemBindVal = HashMap<Class<*>, Int>()
 
-    private val EMPTY_VIEW_TYPE = -100
     private val UNKNOWN_VIEW_TYPE = -101
 
     private val UNKNOWN_VIEW_TYPE_TEXT = "Undefined data type!"
 
     private var mRecyclerView: RecyclerView? = null
 
+    private var curEmptyAdapter: EmptyPageAdapter? = null
+    private var concatAdapter: ConcatAdapter? = null
+
     /**
-     * 空数据占位图
+     * 请给RecyclerView设置这个adapter, 参考:
+     * recyclerView.adapter = pagingAdapter.adapter
      */
-    private var emptyView: BasePageStateView<*, *, *>? = null
+    val adapter: RecyclerView.Adapter<*>
+        get() {
+            return if (concatAdapter == null) this else concatAdapter!!
+        }
+
+    /**
+     * 启用状态View, 包括 底部加载更多状态，以及占满RV的空数据缺省页
+     * 请在调用这个方法后，重新给RecyclerView设置适配器
+     * 请设置 this.adapter
+     * @see adapter 给 recyclerView设置的适配器
+     * @param context 上下文对象
+     * @param emptyStatePage 自定义 空数据占位 View
+     * @param loadStateItem 自定义底部 加载更多状态 View
+     * @param enableEmptyPage 是否显示 空数据占位 布局
+     * @param enableLoadMoreItem 是否显示底部 加载更多状态 View
+     * @param retry 点击 重新加载 数据回调
+     */
+    fun enableStatusView(
+        context: Context,
+        emptyStatePage: BasePageStateView<*, *, *>? = null,
+        loadStateItem: BaseLoadView<*>? = null,
+        enableEmptyPage: Boolean = true,
+        enableLoadMoreItem: Boolean = false,
+        retry: () -> Unit = {}
+    ) {
+        val getItemCount: () -> Int = {
+            itemCount
+        }
+        curEmptyAdapter?.let {
+            concatAdapter?.removeAdapter(it)
+        }
+        curEmptyAdapter = EmptyPageAdapter(
+            context,
+            getItemCount,
+            emptyStatePage,
+            loadStateItem,
+            lifecycleOwner,
+            enableEmptyPage,
+            enableLoadMoreItem,
+            retry
+        )
+        curEmptyAdapter?.let {
+            concatAdapter = withLoadStateFooter(it)
+        }
+    }
 
     /**
      * 绑定 数据类型 和 视图ID
      */
-    fun bind(clazz: Class<*>, @LayoutRes layoutId: Int, brId: Int) {
+    fun bind(clazz: Class<*>, @LayoutRes layoutId: Int, brId: Int = 0) {
         itemViewTypes[clazz] = layoutId
         itemBindVal[clazz] = brId
+        refreshScreenItems(clazz)
     }
 
     /**
-     * 实际数据大小
+     * 刷新当前可见Item
      */
-    val dataCount: Int = super.getItemCount()
+    private fun refreshScreenItems(clazz: Class<*>?) {
+        mRecyclerView?.let { recyclerView ->
+            recyclerView.layoutManager?.let { layoutManager ->
+                var start = 0
+                var end = Math.max(0, itemCount - 1)
+                when (layoutManager) {
+                    is LinearLayoutManager -> {
+                        start = layoutManager.findFirstVisibleItemPosition()
+                        end = layoutManager.findLastVisibleItemPosition()
+                    }
 
-    override fun getItemCount(): Int {
-        if (emptyView != null && dataCount == 0) {
-            return 1
+                    is StaggeredGridLayoutManager -> {
+                        val firstIndexArray = layoutManager.findFirstVisibleItemPositions(null)
+                        val lastIndexArray = layoutManager.findLastVisibleItemPositions(null)
+                        if (firstIndexArray.isNotEmpty() && lastIndexArray.isNotEmpty()) {
+                            firstIndexArray.sort()
+                            lastIndexArray.sort()
+                            start = firstIndexArray.first()
+                            end = lastIndexArray.last()
+                        }
+                    }
+                }
+                for (position in start..end) {
+                    if (position < itemCount) {
+                        if (clazz == null || getItem(position)?.javaClass == clazz) {
+                            notifyItemChanged(position)
+                        }
+                    }
+                }
+            }
         }
-        return dataCount
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (dataCount == 0) {
-            return EMPTY_VIEW_TYPE
-        }
+        if (position >= itemCount) return super.getItemViewType(position)
         val data = getItem(position) ?: return UNKNOWN_VIEW_TYPE
         return itemViewTypes[data::class.java] ?: UNKNOWN_VIEW_TYPE
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BindHolder {
-        return when (viewType) {
-            EMPTY_VIEW_TYPE -> {
-                emptyView!!.createViewHolder(parent, lifecycleOwner)
-            }
-
-            else -> {
-                var mClass: Class<*>? = null
-                if (viewType != UNKNOWN_VIEW_TYPE) {
-                    for (itemViewType in itemViewTypes) {
-                        if (itemViewType.value == viewType) {
-                            mClass = itemViewType.key
-                            break
-                        }
-                    }
-                }
-                if (mClass != null) {
-                    val isFullSpan = StaggeredFullSpan::class.java.isAssignableFrom(mClass)
-                    val binding = DataBindingUtil.inflate<ViewDataBinding>(
-                        LayoutInflater.from(parent.context),
-                        viewType,
-                        parent,
-                        false
-                    )
-                    BindHolder(
-                        binding = binding,
-                        lifecycleOwner = null,
-                        fullSpan = isFullSpan
-                    )
-                } else {
-                    BindHolder(TextView(parent.context).apply {
-                        text = UNKNOWN_VIEW_TYPE_TEXT
-                        gravity = Gravity.CENTER_VERTICAL
-                        ViewCompat.setPaddingRelative(this, 12, 12, 12, 12)
-                        layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
-                    })
+        var mClass: Class<*>? = null
+        if (viewType != UNKNOWN_VIEW_TYPE) {
+            for (itemViewType in itemViewTypes) {
+                if (itemViewType.value == viewType) {
+                    mClass = itemViewType.key
+                    break
                 }
             }
+        }
+        return if (mClass != null) {
+            val isFullSpan = StaggeredFullSpan::class.java.isAssignableFrom(mClass)
+            val binding = DataBindingUtil.inflate<ViewDataBinding>(
+                LayoutInflater.from(parent.context),
+                viewType,
+                parent,
+                false
+            )
+            BindHolder(
+                binding = binding,
+                lifecycleOwner = null,
+                fullSpan = isFullSpan
+            )
+        } else {
+            BindHolder(TextView(parent.context).apply {
+                text = UNKNOWN_VIEW_TYPE_TEXT
+                gravity = Gravity.CENTER_VERTICAL
+                ViewCompat.setPaddingRelative(this, 12, 12, 12, 12)
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            })
         }
     }
 
@@ -130,23 +200,33 @@ class QuickBindPagingAdapter<T : Any>(
         position: Int,
         payloads: MutableList<Any>
     ) {
+        val itemViewType = getItemViewType(position)
+        if (itemViewType == UNKNOWN_VIEW_TYPE) {
+            return
+        }
         if (null != quickBindPayloads) {
             val data = getItem(position) ?: return
-            quickBindPayloads?.invoke(this, holder, data, position, payloads)
+            quickBindPayloads?.invoke(this, holder.binding ?: return, data, position, payloads)
         } else {
             super.onBindViewHolder(holder, position, payloads)
         }
     }
 
     override fun onBindViewHolder(holder: BindHolder, position: Int) {
-        val data = getItem(position)
-        if (brId != 0) {
-            holder.binding?.setVariable(brId, data)
+        val itemViewType = getItemViewType(position)
+        if (itemViewType == UNKNOWN_VIEW_TYPE) {
+            return
         }
-        quickBind?.invoke(this, holder, data ?: return, position)
+        val data = getItem(position) ?: return
+        itemBindVal[data::class.java]?.let { brId ->
+            if (brId != 0) {
+                holder.binding?.setVariable(brId, data)
+            }
+        }
+        quickBind?.invoke(this, holder.binding ?: return, data, position)
         if (onItemClickListener != null) {
             holder.binding?.root?.setOnClickListener {
-                onItemClickListener?.invoke(this, data ?: return@setOnClickListener, position)
+                onItemClickListener?.invoke(this, data, position)
             }
         } else {
             holder.binding?.root?.setOnClickListener(null)
@@ -155,7 +235,7 @@ class QuickBindPagingAdapter<T : Any>(
             holder.binding?.root?.setOnLongClickListener {
                 return@setOnLongClickListener onItemLongClickListener?.invoke(
                     this,
-                    data ?: return@setOnLongClickListener false,
+                    data,
                     position
                 ) ?: false
             }
@@ -168,7 +248,7 @@ class QuickBindPagingAdapter<T : Any>(
                     onItemChildClickListener?.invoke(
                         this,
                         childView,
-                        data ?: return@setOnClickListener,
+                        data,
                         position
                     )
                 }
@@ -183,7 +263,7 @@ class QuickBindPagingAdapter<T : Any>(
                         return@setOnLongClickListener onItemChildLongClickListener?.invoke(
                             this,
                             childView,
-                            data ?: return@setOnLongClickListener false,
+                            data,
                             position
                         ) ?: false
                     }
@@ -199,7 +279,7 @@ class QuickBindPagingAdapter<T : Any>(
         refreshSpanSizeLookup()
         val lp = holder.itemView.layoutParams
         if (lp is StaggeredGridLayoutManager.LayoutParams) {
-            if (holder.itemViewType == EMPTY_VIEW_TYPE || holder.fullSpan) {
+            if (holder.fullSpan) {
                 lp.isFullSpan = true
             }
         }
@@ -209,10 +289,6 @@ class QuickBindPagingAdapter<T : Any>(
         super.onAttachedToRecyclerView(recyclerView)
         this.mRecyclerView = recyclerView
 
-        //不缓存缺省页布局
-        val pool = recyclerView.recycledViewPool
-        pool.setMaxRecycledViews(EMPTY_VIEW_TYPE, 0)
-
         //更新lookup
         refreshSpanSizeLookup()
     }
@@ -221,9 +297,17 @@ class QuickBindPagingAdapter<T : Any>(
 
     private val spanSizeLookUp = object : GridLayoutManager.SpanSizeLookup() {
         override fun getSpanSize(position: Int): Int {
-            return if (getItemViewType(position) == EMPTY_VIEW_TYPE) {
-                //缺省页
-                (mRecyclerView?.layoutManager as GridLayoutManager).spanCount
+            var itemViewType = adapter.getItemViewType(position)
+            if (adapter is ConcatAdapter) {
+                //获取真实的itemViewType
+                itemViewType = (adapter as ConcatAdapter).getWrappedAdapterAndPosition(position)
+                    .first.getItemViewType(position)
+            }
+            return if (itemViewType == UNKNOWN_VIEW_TYPE
+                || itemViewType == EmptyPageAdapter.LOAD_VIEW_TYPE
+                || itemViewType == EmptyPageAdapter.EMPTY_VIEW_TYPE
+            ) {
+                (mRecyclerView?.layoutManager as? GridLayoutManager)?.spanCount ?: 1
             } else {
                 customLookUp?.getSpanSize(position) ?: 1
             }
@@ -249,18 +333,16 @@ class QuickBindPagingAdapter<T : Any>(
         }
     }
 
-    var quickBind: ((adapter: QuickBindPagingAdapter<T>, viewHolder: BindHolder, data: T, position: Int) -> Unit)? =
+    var quickBind: ((adapter: QuickBindPagingAdapter<T>, mBinding: ViewDataBinding, data: T, position: Int) -> Unit)? =
         null
-        private set
 
     var quickBindPayloads: ((
         adapter: QuickBindPagingAdapter<T>,
-        viewHolder: BindHolder,
+        mBinding: ViewDataBinding,
         data: T,
         position: Int,
         payloads: MutableList<Any>
     ) -> Unit)? = null
-        private set
 
     var onItemClickListener: ((adapter: QuickBindPagingAdapter<T>, data: T, position: Int) -> Unit)? =
         null

@@ -733,22 +733,6 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     /**
-     * 已过时，统一使用addData()
-     */
-    @Deprecated("Please use addData()", replaceWith = ReplaceWith("addData(newData)"))
-    fun addDatas(newData: Collection<*>): Int {
-        return addData(newData)
-    }
-
-    /**
-     * 已过时，统一使用addData()
-     */
-    @Deprecated("Please use addData()", replaceWith = ReplaceWith("addData(newData, scrollToThis)"))
-    fun addDatas(newData: Collection<*>, scrollToThis: Boolean) {
-        addData(newData, scrollToThis)
-    }
-
-    /**
      * 移除某个item
      *
      * @param position 位置
@@ -982,25 +966,6 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     fun setEmptyView(view: BasePageStateView<*, *, *>?): QuickBindAdapter {
         emptyView = view
         return this
-    }
-
-    /**
-     * 启用 状态页
-     */
-    @Deprecated("启用 状态页", replaceWith = ReplaceWith("enableStatePage(context)"))
-    fun setEmptyView(context: Context): QuickBindAdapter {
-        return enableStatePage(context)
-    }
-
-    /**
-     * 启用 状态页， 并设置默认展示的页面
-     */
-    @Deprecated(
-        "启用 状态页 并设置默认展示的页面",
-        replaceWith = ReplaceWith("enableStatePage(context, defaultPageState)")
-    )
-    fun setEmptyView(context: Context, defaultPageState: PageState): QuickBindAdapter {
-        return enableStatePage(context, defaultPageState)
     }
 
     /**

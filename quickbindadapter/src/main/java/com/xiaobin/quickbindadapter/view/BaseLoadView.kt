@@ -1,12 +1,12 @@
 package com.xiaobin.quickbindadapter.view
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import com.xiaobin.quickbindadapter.BindHolder
+import com.xiaobin.quickbindadapter.holder.LoadViewHolder
 
 abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
 
@@ -14,7 +14,7 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
         LOADING, SUCCESS, FAILED, NO_MORE, WAIT_LOADING, NO_STATE
     }
 
-    private var viewHolder: BindHolder? = null
+    private var viewHolder: LoadViewHolder? = null
 
     //加载更多
     var loadMoreState = LoadMoreState.NO_STATE
@@ -25,8 +25,8 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
     fun createViewHolder(
         parent: ViewGroup,
         lifecycleOwner: LifecycleOwner? = null,
-        onClickLoadMore: View.OnClickListener? = null
-    ): BindHolder {
+        onClickLoadMore: () -> Unit = {}
+    ): LoadViewHolder {
         loadView = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
             layoutId,
@@ -42,7 +42,7 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
                 //加载中，加载结束并且没有更多数据时，不允许触发点击事件
                 return@setOnClickListener
             }
-            onClickLoadMore?.onClick(it)
+            onClickLoadMore()
         }
         //恢复状态
         when (loadMoreState) {
@@ -53,7 +53,7 @@ abstract class BaseLoadView<T : ViewDataBinding?>(private val layoutId: Int) {
             LoadMoreState.WAIT_LOADING -> isWaitLoading(true)
             LoadMoreState.NO_STATE -> isWaitLoading(true)
         }
-        viewHolder = BindHolder(loadView!!, lifecycleOwner)
+        viewHolder = LoadViewHolder(this, loadView!!, lifecycleOwner)
         return viewHolder!!
     }
 
