@@ -1,7 +1,5 @@
 package com.xiaobin.quickbindadapter.paging
 
-import android.content.Context
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.Space
 import androidx.lifecycle.LifecycleOwner
@@ -19,15 +17,14 @@ import com.xiaobin.quickbindadapter.view.DefaultLoadView
 /**
  * 空数据占位布局
  */
-class EmptyPageAdapter(
-    val context: Context,
-    val getCount: () -> Int,
-    val pageView: BasePageStateView<*, *, *>? = null,
-    val loadView: BaseLoadView<*>? = null,
-    val lifecycleOwner: LifecycleOwner? = null,
-    val enableEmptyPage: Boolean = true,
-    val enableLoadMoreItem: Boolean = false,
-    val retry: () -> Unit = {},
+internal class EmptyPageAdapter(
+    private val getCount: () -> Int,
+    private val pageView: BasePageStateView<*, *, *>? = null,
+    private val loadView: BaseLoadView<*>? = null,
+    private val lifecycleOwner: LifecycleOwner? = null,
+    private val enableEmptyPage: Boolean = true,
+    private val enableLoadMoreItem: Boolean = false,
+    private val retry: () -> Unit = {},
 ) : LoadStateAdapter<BindHolder>() {
 
     companion object {

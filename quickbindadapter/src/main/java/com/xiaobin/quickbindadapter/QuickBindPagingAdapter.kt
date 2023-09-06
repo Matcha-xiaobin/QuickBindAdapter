@@ -94,7 +94,6 @@ class QuickBindPagingAdapter<T : Any>(
             concatAdapter?.removeAdapter(it)
         }
         curEmptyAdapter = EmptyPageAdapter(
-            context,
             getItemCount,
             emptyStatePage,
             loadStateItem,
