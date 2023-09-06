@@ -55,25 +55,7 @@ abstract class BasePageStateView<
         return currentPageState
     }
 
-    fun createViewHolder(parent: ViewGroup, mLifecycleOwner: LifecycleOwner? = null): BindHolder {
-        emptyView = null
-        loadingView = null
-        errorView = null
-        emptyPageDecorView = DataBindingUtil.inflate(
-            LayoutInflater.from(parent.context),
-            R.layout.mc_xb_layout_place_page,
-            parent,
-            false
-        )
-        mLifecycleOwner?.apply {
-            lifecycleOwner = this
-            emptyPageDecorView!!.lifecycleOwner = this
-        }
-        setPageState(currentPageState)
-        return BindHolder(emptyPageDecorView!!, mLifecycleOwner)
-    }
-
-    fun createEmptyViewHolder(parent: ViewGroup, mLifecycleOwner: LifecycleOwner? = null): EmptyViewHolder {
+    fun createViewHolder(parent: ViewGroup, mLifecycleOwner: LifecycleOwner? = null): EmptyViewHolder {
         emptyView = null
         loadingView = null
         errorView = null

@@ -83,7 +83,7 @@ class EmptyPageAdapter(
                         retry()
                     }
         } else if (!showLoadItem() && enableEmptyPage) {
-            pageView?.createEmptyViewHolder(parent, lifecycleOwner)
+            pageView?.createViewHolder(parent, lifecycleOwner)
                 ?: DefaultEmptyStatePage(parent.context).createViewHolder(parent, lifecycleOwner)
         } else {
             BindHolder(Space(parent.context))
