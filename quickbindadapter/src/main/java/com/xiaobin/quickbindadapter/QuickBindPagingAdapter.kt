@@ -199,13 +199,13 @@ class QuickBindPagingAdapter<T : Any>(
         position: Int,
         payloads: MutableList<Any>
     ) {
-        val itemViewType = getItemViewType(position)
-        if (itemViewType == UNKNOWN_VIEW_TYPE) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
             return
         }
-        if (null != quickBindPayloads) {
-            val data = getItem(position) ?: return
-            quickBindPayloads?.invoke(this, holder.binding ?: return, data, position, payloads)
+        val itemData = getItem(position) ?: return
+        if (quickBindPayloads != null) {
+            quickBindPayloads?.invoke(holder.binding, itemData, position, payloads)
         } else {
             super.onBindViewHolder(holder, position, payloads)
         }
@@ -222,7 +222,7 @@ class QuickBindPagingAdapter<T : Any>(
                 holder.binding?.setVariable(brId, data)
             }
         }
-        quickBind?.invoke(this, holder.binding ?: return, data, position)
+        quickBind?.invoke(holder.binding ?: return, data, position)
         if (onItemClickListener != null) {
             holder.binding?.root?.setOnClickListener {
                 onItemClickListener?.invoke(this, data, position)
@@ -332,12 +332,11 @@ class QuickBindPagingAdapter<T : Any>(
         }
     }
 
-    var quickBind: ((adapter: QuickBindPagingAdapter<T>, mBinding: ViewDataBinding, data: T, position: Int) -> Unit)? =
+    var quickBind: ((mBinding: ViewDataBinding?, data: T, position: Int) -> Unit)? =
         null
 
     var quickBindPayloads: ((
-        adapter: QuickBindPagingAdapter<T>,
-        mBinding: ViewDataBinding,
+        mBinding: ViewDataBinding?,
         data: T,
         position: Int,
         payloads: MutableList<Any>

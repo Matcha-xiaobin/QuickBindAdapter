@@ -85,13 +85,13 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     /**
      * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
      */
-    private var quickBind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)? =
+    private var quickBind: ((binding: ViewDataBinding?, itemData: Any, position: Int) -> Unit)? =
         null
 
     /**
      * item的数据绑定回调，除了dataBinding本身的绑定之外的其它特殊操作
      */
-    private var quickBindPayloads: ((binding: ViewDataBinding, itemData: Any, position: Int, payloads: MutableList<Any>) -> Unit)? =
+    private var quickBindPayloads: ((binding: ViewDataBinding?, itemData: Any, position: Int, payloads: MutableList<Any>) -> Unit)? =
         null
 
     /**
@@ -266,20 +266,24 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
     }
 
     override fun onBindViewHolder(holder: BindHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
+            return
+        }
         val itemData = getItemData(position) ?: return
         if (quickBindPayloads != null) {
-            quickBindPayloads?.invoke(holder.binding!!, itemData, position, payloads)
+            quickBindPayloads?.invoke(holder.binding, itemData, position, payloads)
         } else {
             super.onBindViewHolder(holder, position, payloads)
         }
     }
 
     override fun onBindViewHolder(holder: BindHolder, position: Int) {
-        if (listData.isEmpty()) return
+        if (listData.isEmpty() || position >= listData.size) return
         val itemType = holder.itemViewType
         if (itemType < 0) return
         val clz = layoutClass[itemType]
-        val itemData = getItemData(position) ?: return
+        val itemData = getItemData(position)!!
         //item点击事件绑定
         if (onItemClickListener != null) {
             holder.itemView.setOnClickListener { view ->
@@ -316,7 +320,7 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         if (variableIds.containsKey(clz)) {
             holder.binding?.setVariable(variableIds[clz]!!, itemData)
         }
-        quickBind?.invoke(holder.binding!!, itemData, position)
+        quickBind?.invoke(holder.binding, itemData, position)
         holder.binding?.executePendingBindings()
     }
 
@@ -953,12 +957,12 @@ open class QuickBindAdapter() : RecyclerView.Adapter<BindHolder>() {
         return this
     }
 
-    fun setQuickBind(bind: ((binding: ViewDataBinding, itemData: Any, position: Int) -> Unit)?): QuickBindAdapter {
+    fun setQuickBind(bind: ((binding: ViewDataBinding?, itemData: Any, position: Int) -> Unit)?): QuickBindAdapter {
         quickBind = bind
         return this
     }
 
-    fun setQuickBindPayloads(bind: ((binding: ViewDataBinding, itemData: Any, position: Int, payloads: MutableList<Any>) -> Unit)?): QuickBindAdapter {
+    fun setQuickBindPayloads(bind: ((binding: ViewDataBinding?, itemData: Any, position: Int, payloads: MutableList<Any>) -> Unit)?): QuickBindAdapter {
         quickBindPayloads = bind
         return this
     }
